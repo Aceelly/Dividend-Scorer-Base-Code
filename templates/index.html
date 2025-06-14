@@ -10,151 +10,92 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <!-- Login Overlay Section -->
-    <div id="login-overlay" class="auth-overlay">
-        <div class="auth-container">
-            <h2>Login</h2>
-            <form id="login-form">
-                <!-- Username field for login form -->
-                <div class="form-group">
-                    <label for="login-username">Username:</label>
-                    <input type="text" id="login-username" placeholder="Enter your username" required>
-                </div>
-                <!-- Password field for login form -->
-                <div class="form-group">
-                    <label for="login-password">Password:</label>
-                    <input type="password" id="login-password" placeholder="Enter your password" required>
-                </div>
-                <!-- Submit button for login form -->
-                <button type="submit">Login</button>
-                <p>Don't have an account? <a href="#" id="switch-to-signup">Sign up</a></p>
-            </form>
-        </div>
-    </div>
-
-    <!-- Signup Overlay Section (Hidden by default) -->
-    <div id="signup-overlay" class="auth-overlay hidden">
-        <div class="auth-container">
-            <h2>Sign Up</h2>
-            <form id="signup-form">
-                <!-- Username field for signup form -->
-                <div class="form-group">
-                    <label for="signup-username">Username:</label>
-                    <input type="text" id="signup-username" placeholder="Enter your username" required>
-                </div>
-                <!-- Password field for signup form -->
-                <div class="form-group">
-                    <label for="signup-password">Password:</label>
-                    <input type="password" id="signup-password" placeholder="Enter your password" required>
-                </div>
-                <!-- Confirm password field for signup form -->
-                <div class="form-group">
-                    <label for="confirm-password">Confirm Password:</label>
-                    <input type="password" id="confirm-password" placeholder="Confirm your password" required>
-                </div>
-                <!-- Submit button for signup form -->
-                <button type="submit">Sign Up</button>
-                <p>Already have an account? <a href="#" id="switch-to-login">Login</a></p>
-            </form>
-        </div>
-    </div>
-
     <!-- Main Content Section -->
-     <div id="main-content" class="container">
+    <div id="main-content" class="container">
         <div class="header">
             <h1>Dividend Scorer</h1>
             <!-- Logout button -->
             <button id="logout-btn" class="logout-btn">Log Out</button>
         </div>
-            <div class="main-content">
+        <div class="main-content">
             <!-- Greeting header with a search bar for stock ticker -->
-                <div class="header">
-                    <h1 id="user-greeting">Hello Sam,</h1> <input type="text" class="search-bar" id="stock-ticker-input" placeholder="Enter Stock Ticker">
+            <div class="header">
+                <h1 id="user-greeting">Hello {{ current_user.username }},</h1> <input type="text" class="search-bar" id="stock-ticker-input" placeholder="Enter Stock Ticker">
             </div>
 
             <!-- Metric Cards Section -->
-                <div class="metric-cards">
-                    <div class="dividend-score-row">
-                        <div class="metric-card">
-                            <h3>Dividend Score</h3>
-                            <h2 id="dividend-score-value">N/A</h2> 
-                        </div>
-                        <!-- Safety Chart Section -->
-                        <div class="chart-container" id="safety-chart-container">
-                            <table class="safety-chart">
-                                <thead>
-                                    <tr>
-                                        <th>Safety Level</th>
-                                        <th>Score Range</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Rows indicating different safety levels and score ranges -->
-                                    <tr class="extremely-safe">
-                                        <td>Extremely Safe</td>
-                                        <td>78-100</td>
-                                    </tr>
-                                    <tr class="safe">
-                                        <td>Safe</td>
-                                        <td>60-77</td>
-                                    </tr>
-                                    <tr class="unsafe">
-                                        <td>Unsafe</td>
-                                        <td>36-59</td>
-                                    </tr>
-                                    <tr class="extremely-unsafe">
-                                        <td>Extremely Unsafe</td>
-                                        <td>1-35</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+            <div class="metric-cards">
+                <div class="dividend-score-row">
                     <div class="metric-card">
-                        <h3>Company Name</h3> 
-                        <h2 id="free-cashflow-generation-score-value">N/A</h2> 
+                        <h3>Dividend Score</h3>
+                        <h2 id="dividend-score-value">N/A</h2> 
                     </div>
-                    <div class="metric-card">
-                        <h3>Market Cap</h3>
-                        <h2 id="market-cap-value">N/A</h2> 
+                    <!-- Safety Chart Section -->
+                    <div class="chart-container" id="safety-chart-container">
+                        <table class="safety-chart">
+                            <thead>
+                                <tr>
+                                    <th>Safety Level</th>
+                                    <th>Score Range</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows indicating different safety levels and score ranges -->
+                                <tr class="extremely-safe">
+                                    <td>Extremely Safe</td>
+                                    <td>78-100</td>
+                                </tr>
+                                <tr class="safe">
+                                    <td>Safe</td>
+                                    <td>60-77</td>
+                                </tr>
+                                <tr class="unsafe">
+                                    <td>Unsafe</td>
+                                    <td>36-59</td>
+                                </tr>
+                                <tr class="extremely-unsafe">
+                                    <td>Extremely Unsafe</td>
+                                    <td>1-35</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="metric-card" id="payout-ratio-card">
-                        <h3>Payout Ratio</h3>
-                        <h2 id="payout-ratio-value">N/A</h2>
-                    </div>
-                    <div class="metric-card">
-                        <h3>EPS</h3> 
-                        <h2 id="total-investment-value">N/A</h2> 
-                    </div>
-                    <div class="metric-card" id="dividend-yield-card">
-                        <h3>Dividend Yield</h3>
-                        <h2 id="dividend-yield-value">N/A</h2>
-                    </div>
-                    
                 </div>
+                <div class="metric-card">
+                    <h3>Company Name</h3> 
+                    <h2 id="free-cashflow-generation-score-value">N/A</h2> 
+                </div>
+                <div class="metric-card">
+                    <h3>Market Cap</h3>
+                    <h2 id="market-cap-value">N/A</h2> 
+                </div>
+                <div class="metric-card" id="payout-ratio-card">
+                    <h3>Payout Ratio</h3>
+                    <h2 id="payout-ratio-value">N/A</h2>
+                </div>
+                <div class="metric-card">
+                    <h3>EPS</h3> 
+                    <h2 id="total-investment-value">N/A</h2> 
+                </div>
+                <div class="metric-card" id="dividend-yield-card">
+                    <h3>Dividend Yield</h3>
+                    <h2 id="dividend-yield-value">N/A</h2>
+                </div>
+            </div>
 
-                <!-- Cashflow Chart Section -->
-                <div class="chart-container">
-                    <div class="cashflow-chart">
-                        <h2>Yearly Cashflow Analysis</h2>
-                        <canvas id="cashflowChart"></canvas>
-                    </div>
+            <!-- Cashflow Chart Section -->
+            <div class="chart-container">
+                <div class="cashflow-chart">
+                    <h2>Yearly Cashflow Analysis</h2>
+                    <canvas id="cashflowChart"></canvas>
                 </div>
-    </div>
+            </div>
         </div>
+    </div>
     
     <!-- JavaScript files for handling functionality and interactivity -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="{{ url_for('static', filename='auth.js') }}"></script> 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const userGreeting = document.getElementById('user-greeting');
-            const currentUser = localStorage.getItem('currentUser');
-            if (currentUser) {
-                userGreeting.textContent = `Hello ${currentUser},`;
-            }
-        });
-    </script>
     <script>
         let cashflowChart = null;
 

@@ -1,16 +1,62 @@
 import requests
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
+import json
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
-
-# Enable CORS for all origins
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'a_very_secret_key_that_should_be_changed') # Use a strong secret key from .env
 CORS(app, resources={r"/*": {"origins": "*"}}) 
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login' # Specify the login view
+
+USERS_FILE = 'users.json'
+
+# User management functions
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        with open(USERS_FILE, 'w') as f:
+            json.dump({}, f)
+    with open(USERS_FILE, 'r') as f:
+        return json.load(f)
+
+def save_users(users):
+    with open(USERS_FILE, 'w') as f:
+        json.dump(users, f, indent=4)
+
+class User(UserMixin):
+    def __init__(self, id, username, password_hash):
+        self.id = id
+        self.username = username
+        self.password_hash = password_hash
+
+    @staticmethod
+    def get(user_id):
+        users = load_users()
+        for username, user_data in users.items():
+            if user_data['id'] == int(user_id): # Ensure type consistency
+                return User(user_data['id'], username, user_data['password_hash'])
+        return None
+
+    @staticmethod
+    def get_by_username(username):
+        users = load_users()
+        user_data = users.get(username)
+        if user_data:
+            return User(user_data['id'], username, user_data['password_hash'])
+        return None
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
 
 def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance):
     # Calculate payout ratio and its corresponding score
@@ -65,6 +111,7 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
     }
 
 @app.route('/calculate', methods=['POST'])
+@login_required
 def calculate():
     # This route is currently not used by the frontend for dividend scoring based on ticker
     # It was previously used for manual input calculation.
@@ -82,11 +129,54 @@ def calculate():
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
 @app.route('/')
+@login_required
 def index():
     # Render the main page (index.html) for the application
     return render_template('index.html')
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.get_by_username(username)
+        if user and check_password_hash(user.password_hash, password):
+            login_user(user)
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid username or password')
+    return render_template('login.html')
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        users = load_users()
+        if username in users:
+            flash('Username already exists')
+        else:
+            user_id = len(users) + 1 # Simple ID generation
+            hashed_password = generate_password_hash(password)
+            users[username] = {'id': user_id, 'password_hash': hashed_password}
+            save_users(users)
+            user = User(user_id, username, hashed_password)
+            login_user(user)
+            return redirect(url_for('index'))
+    return render_template('signup.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
 @app.route('/get_stock_data', methods=['GET', 'POST']) 
+@login_required
 def get_stock_data():
     # Retrieve the stock ticker from the form data
     ticker = request.form.get('ticker')
@@ -114,6 +204,7 @@ def get_stock_data():
     })
 
 @app.route('/get_dividend_score', methods=['GET', 'POST'])
+@login_required
 def get_dividend_score():
     # Retrieve the stock ticker from the form data
     ticker = request.form.get('ticker')
@@ -202,6 +293,7 @@ def get_dividend_score():
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
 @app.route('/api/cashflow/<symbol>')
+@login_required
 def get_cashflow_data(symbol):
     api_key = os.getenv('API_KEY')
     if not api_key:

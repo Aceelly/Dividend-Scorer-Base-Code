@@ -1,0 +1,10 @@
+{
+    "aceely": {
+        "id": 1,
+        "password_hash": "scrypt:32768:8:1$P1kjo655vvji8GV6$7496557cad033c4f33719cb4322737d38be0f8caaac82ff61661500393cc0a67e46cd7dfa4006254c53b1b9efaeb4a9495dda6a5ffe0ed661948380895388440"
+    },
+    "dave": {
+        "id": 2,
+        "password_hash": "scrypt:32768:8:1$ZYqPZ7tYo8KdJItK$6d0216bf3d0a445fb413938dcd733d09ade0d1954b32bd99a367709ff5ff5ecbb14d9c3e2ca15fc9ce24cebfd2195cd798116e3488528f54c6c0f4b7fb1970d3"
+    }
+}
