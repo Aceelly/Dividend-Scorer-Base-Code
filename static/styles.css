@@ -1,373 +1,300 @@
-/* General Page Styling */
 body {
-    font-family: Inter, sans-serif;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
     margin: 0;
     padding: 0;
-    background-color: #CCFAE6; /* Soft mint green background */
-    display: flex;
-    justify-content: center; /* Center content horizontally */
-    min-height: 100vh; /* Ensure body takes full viewport height */
+    background-color: #f4f4f4;
 }
 
-/* Main Container */
-.container {
-    display: flex;
-    flex-direction: column; /* Stack content vertically */
-    align-items: center; /* Center content horizontally within the container */
-    max-width: 960px; /* Set a maximum width for the container */
-    width: 100%; /* Make the container take full available width */
-    padding: 20px;
-}
-
-/* Main Content Area */
-.main-content {
-    flex-grow: 1;
-    padding: 20px;
-    font-family: Inter, sans-serif;
-    width: 100%; /* Make main content take full container width */
-}
-
-/* Header Section */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
-    font-family: Inter, sans-serif;
-    width: 100%; /* Make header take full container width */
-}
-
-.header h1 {
-    font-family: Vollkorn, serif;
-}
-
-/* Search Bar Styling */
-.search-bar {
-    padding: 10px;
-    width: 200px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-family: Inter, sans-serif;
-    background-color: #f4fcf6;
-    font-size: 16px;
-}
-
-/* Stock Card Layout */
-.stock-cards {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    font-family: Inter, sans-serif;
-    flex-wrap: wrap; /* Allow cards to wrap on smaller screens */
-}
-
-/* Individual Stock Card */
-.stock-card {
-    background-color: white;
-    border-radius: 10px;
-    padding: 10px;
-    width: 22%;
-    font-family: Inter, sans-serif;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 20px; /* Add margin between cards */
-}
-
-.stock-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Metric Card Layout */
-.metric-cards {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    font-family: Inter, sans-serif;
-    flex-wrap: wrap; /* Allow cards to wrap on smaller screens */
-}
-
-/* Individual Metric Card */
-.metric-card {
-    background-color: white;
-    border-radius: 10px;
-    padding: 10px;
-    width: 30%;
-    text-align: center; /* Center content within the card */
-    font-family: Inter, sans-serif;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 20px; /* Add margin between cards */
-}
-
-.metric-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-}
-
-.metric-card * { /* Target all elements within the metric card */
-    text-align: center; /* Center align all content */
-}
-
-.metric-card h3 {
-    font-family: Vollkorn, serif;
-}
-
-/* Chart Container Styling */
-.chart-container {
-    background-color: white;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-    width: 100%;
-    box-sizing: border-box; /* Important: include padding in width calculation */
-}
-
-.chart-container h2 {
-    font-size: 1.2em; /* Smaller heading */
-    margin-bottom: 10px; /* Reduced margin */
-}
-
-/* Chart Row Layout */
-.chart-row {
-    display: flex;
-    flex-wrap: wrap; /* Allow charts to wrap on smaller screens */
-}
-
-/* Safety Chart Styling */
-.safety-chart {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: 'Vollkorn', serif;
-    font-size: 0.8em; /* Reduced font size */
-    margin-top: 10px;
-    table-layout: fixed; /* Ensure even column width distribution */
-}
-
-/* Safety Chart Headers and Cells */
-.safety-chart th,
-.safety-chart td {
-    padding: 8px; /* Reduced padding */
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-    word-wrap: break-word; /* Allow long words to break and wrap */
-}
-
-.safety-chart th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-}
-
-/* Highlight rows based on safety level */
-.extremely-safe {
-    /* background-color: #d2ffd8;  Light mint green */
-    color: #228B22; /* Forest green text */
-}
-
-.safe {
-    /* background-color: #99ccff;  Light sky blue */
-    color: #000080; /* Navy blue text */
-}
-
-.unsafe {
-    /* background-color: #ffffcc;  Quieter yellow */
-    color: #DAA520; /* Goldenrod text */
-}
-
-.extremely-unsafe {
-    /* background-color: #ffcdd2;  Light red */
-    color: #B22222; /* Firebrick text */
-}
-
-/* Center score column */
-.safety-chart td:nth-child(2) {
-    text-align: center;
-}
-
-/* Remove border from last row */
-.safety-chart tr:last-child td {
-    border-bottom: none;
-}
-
-/* Watchlist Styling */
-.watchlist {
-    background-color: white;
-    border-radius: 10px;
-    padding: 20px;
-    font-family: Inter, sans-serif;
-    width: 100%; /* Make watchlist take full container width */
-}
-
-.watchlist h3 {
-    font-family: Vollkorn, serif;
-}
-
-/* Individual Watchlist Item */
-.watchlist-item {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    font-family: Inter, sans-serif;
-}
-
-/* Button Styling */
-.btn {
-    background-color: white;
-    border: 1px solid #ccc;
-    color: #4CAF50;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 5px;
-    font-family: Inter, sans-serif;
-}
-
-/* Authentication Overlay Styling */
-.auth-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #CCFAE6; /* Semi-transparent background */
+/* Auth Page Body Style */
+body.auth-body {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* Ensure overlay is on top */
+    min-height: 100vh;
+    background-color: #e8f5e9; /* Light green background */
 }
 
-/* Authentication Container Styling */
+/* Auth Container Styles (for login/signup pages) */
 .auth-container {
-    background-color: #e8fce9; /* Light green background */
+    background-color: white;
     padding: 2rem;
-    border-radius: 10px; /* Rounded corners */
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
-    width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
     text-align: center;
 }
 
-/* Authentication Header */
 .auth-container h2 {
-    color: #20232a;
-    font-size: 24px;
-    font-family: 'Vollkorn', serif;
-    text-align: center;
-    margin-bottom: 20px;
+    color: #2e7d32;
+    margin-bottom: 1.5rem;
 }
 
-/* Form Group Styling */
-.form-group {
+.auth-container .form-group {
     margin-bottom: 1rem;
     text-align: left;
 }
 
-.form-group label {
-    font-weight: bold;
-    color: #2d3748;
-    margin-bottom: 5px;
+.auth-container label {
     display: block;
+    margin-bottom: 5px;
+    color: #2e7d32;
 }
 
-/* Input Fields for Auth Forms */
-.form-group input[type="text"],
-.form-group input[type="password"] {
+.auth-container input[type="text"],
+.auth-container input[type="password"] {
+    width: calc(100% - 16px); /* Account for padding */
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 4px;
+}
+
+.auth-container button {
     width: 100%;
     padding: 10px;
-    border: 1px solid #b8e4c9;
-    border-radius: 4px;
-    background-color: #f4fcf6;
-    font-size: 16px;
-    box-sizing: border-box;
-}
-
-/* Submit Button Styling */
-.auth-container button[type="submit"] {
-    background-color: #38a169; /* Primary green */
+    background-color: #4caf50;
     color: white;
-    padding: 10px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    width: 100%;
-    font-weight: bold;
     font-size: 16px;
-    transition: background-color 0.3s ease;
+    margin-top: 1rem;
+    transition: background-color 0.3s;
 }
 
-.auth-container button[type="submit"]:hover {
-    background-color: #2f855a; /* Darker green on hover */
+.auth-container button:hover {
+    background-color: #45a049;
 }
 
-/* Link Styling */
-p {
-    margin-top: 10px;
-    font-size: 14px;
+.auth-container p {
+    text-align: center;
+    margin-top: 1rem;
 }
 
-a {
-    color: #3b8e6c; /* Green for links */
+.auth-container a {
+    color: #4caf50;
     text-decoration: none;
-    font-weight: bold;
 }
 
-a:hover {
+.auth-container a:hover {
     text-decoration: underline;
 }
 
-/* Media Queries for Responsiveness */
-@media (max-width: 768px) {
-    .metric-card, .stock-card {
-        width: 48%; /* Two cards per row on medium screens */
-    }
+/* Flash Messages */
+.flashes {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
 }
 
-@media (max-width: 480px) {
-    .metric-card, .stock-card {
-        width: 100%; /* One card per row on small screens */
-    }
+.flashes li {
+    background-color: #ffe0b2; /* Light orange for warnings/errors */
+    color: #e65100; /* Dark orange text */
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    border: 1px solid #ffb74d;
 }
 
-/* Logout Button Styling */
+/* Header with Logout Button */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
 .logout-btn {
-    background-color: #38a169; /* Primary green background */
-    color: white; /* White text */
-    border: 1px solid black; /* Add black border */
-    padding: 10px 20px;
-    border-radius: 5px;
+    padding: 8px 16px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 16px;
-    font-family: 'Vollkorn', serif; /* Use Vollkorn font */
-    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Add transition for hover effect */
+    transition: background-color 0.3s;
 }
 
 .logout-btn:hover {
-    background-color: #2f855a; /* Dark green on hover */
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Add a subtle shadow on hover */
+    background-color: #d32f2f;
 }
 
-.cashflow-chart {
-    width: 100%;
-    box-sizing: border-box;
+/* Existing Main Content Styles */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: auto;
+    overflow: hidden;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    margin-top: 20px;
 }
 
-/* Dividend Score Text Size */
-#dividend-score-value {
-    font-size: 48px; /* Double the default size */
+h1, h2 {
+    color: #2e7d32;
+    text-align: center;
 }
 
-/* Dividend Score Row Styling */
-.dividend-score-row {
-    display: flex;
-    align-items: center; /* Align items vertically */
-}
-
-/* Safety Chart Container Styling */
-#safety-chart-container {
-    margin-left: 20px; /* Add margin to the left of the chart */
-    flex-shrink: 1; /* Allow the chart to shrink if needed */
+.main-content {
     display: flex;
     flex-direction: column;
+    gap: 20px;
+}
+
+.main-content > .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0; /* Reset margin for this specific header */
+}
+
+.search-bar {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 200px; /* Adjust as needed */
+}
+
+.metric-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.dividend-score-row {
+    display: flex;
+    gap: 20px;
+    grid-column: 1 / -1; /* Span across all columns */
+}
+
+.metric-card {
+    background-color: #e8f5e9; /* Light green background */
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    flex: 1;
+}
+
+.metric-card h3 {
+    color: #2e7d32;
+    margin-top: 0;
+}
+
+.metric-card h2 {
+    color: #4caf50;
+    font-size: 2em;
+    margin-bottom: 0;
+}
+
+.safety-chart-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.safety-chart {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    margin-top: 20px;
+}
+
+.safety-chart thead th {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.safety-chart tr {
+    transition: transform 0.2s;
+}
+
+.safety-chart tr:hover {
+    transform: scale(1.02);
+}
+
+.safety-chart td {
+    padding: 12px;
+    text-align: center;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.safety-chart td:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+.safety-chart td:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+/* Color classes for scores */
+.extremely-safe {
+    background-color: #4caf50; /* Green */
+    color: white;
+}
+
+.safe {
+    background-color: #8bc34a; /* Light Green */
+    color: white;
+}
+
+.unsafe {
+    background-color: #ffc107; /* Amber */
+    color: black;
+}
+
+.extremely-unsafe {
+    background-color: #f44336; /* Red */
+    color: white;
+}
+
+/* Cashflow Chart Specific Styles */
+.cashflow-chart {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+.cashflow-chart h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+@media (max-width: 768px) {
+    .main-content > .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .search-bar {
+        width: 100%;
+        margin-top: 10px;
+    }
+    .dividend-score-row {
+        flex-direction: column;
+    }
+    .metric-card {
+        flex: none; /* Remove flex-grow on small screens */
+        width: 100%;
+    }
+    .safety-chart-container {
+        width: 100%;
+        margin-top: 20px;
+    }
 }

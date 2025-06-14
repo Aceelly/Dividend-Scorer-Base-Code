@@ -1,90 +1,98 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const loginOverlay = document.getElementById('login-overlay');
-    const signupOverlay = document.getElementById('signup-overlay');
-    const mainContent = document.getElementById('main-content');
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
-    const switchToSignupBtn = document.getElementById('switch-to-signup');
-    const switchToLoginBtn = document.getElementById('switch-to-login');
     const logoutBtn = document.getElementById('logout-btn');
 
-    // Check if user is logged in
-    function checkAuth() {
-        const currentUser = localStorage.getItem('currentUser');
-        if (currentUser) {
-            loginOverlay.style.display = 'none';
-            signupOverlay.style.display = 'none';
-            mainContent.style.display = 'block';
-        } else {
-            loginOverlay.style.display = 'flex';
-            signupOverlay.style.display = 'none';
-            mainContent.style.display = 'none';
-        }
+    // Handle login form submission
+    if (loginForm) {
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = loginForm.elements['username'].value;
+            const password = loginForm.elements['password'].value;
+
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString(),
+                });
+
+                if (response.ok) {
+                    window.location.href = '/'; // Redirect to main page on success
+                } else {
+                    const data = await response.json(); // Assuming Flask returns JSON for errors
+                    alert(data.error || 'Login failed');
+                }
+            } catch (error) {
+                console.error('Error during login:', error);
+                alert('An error occurred during login. Please try again.');
+            }
+        });
     }
 
-    // Switch between login and signup forms
-    switchToSignupBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        loginOverlay.style.display = 'none';
-        signupOverlay.style.display = 'flex';
-    });
+    // Handle signup form submission
+    if (signupForm) {
+        signupForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = signupForm.elements['username'].value;
+            const password = signupForm.elements['password'].value;
+            const confirmPassword = signupForm.elements['confirm_password'].value;
 
-    switchToLoginBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        signupOverlay.style.display = 'none';
-        loginOverlay.style.display = 'flex';
-    });
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
 
-    // Handle login
-    loginForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const username = document.getElementById('login-username').value;
-        const password = document.getElementById('login-password').value;
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
+            formData.append('confirm_password', confirmPassword); // Include confirm_password for backend validation if needed
 
-        // Get users from local storage
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
+            try {
+                const response = await fetch('/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString(),
+                });
 
-        if (users[username] && users[username].password === password) {
-            localStorage.setItem('currentUser', username);
-            checkAuth();
-        } else {
-            alert('Invalid username or password');
-        }
-    });
+                if (response.ok) {
+                    window.location.href = '/'; // Redirect to main page on success
+                } else {
+                    const data = await response.json(); // Assuming Flask returns JSON for errors
+                    alert(data.error || 'Signup failed');
+                }
+            } catch (error) {
+                console.error('Error during signup:', error);
+                alert('An error occurred during signup. Please try again.');
+            }
+        });
+    }
 
-    // Handle signup
-    signupForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const username = document.getElementById('signup-username').value;
-        const password = document.getElementById('signup-password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
+    // Handle logout button click
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async function() {
+            try {
+                const response = await fetch('/logout', {
+                    method: 'GET', // Logout is typically a GET request
+                });
 
-        if (password !== confirmPassword) {
-            alert('Passwords do not match');
-            return;
-        }
-
-        // Get existing users or initialize empty object
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-
-        if (users[username]) {
-            alert('Username already exists');
-            return;
-        }
-
-        // Add new user
-        users[username] = { password: password };
-        localStorage.setItem('users', JSON.stringify(users));
-        localStorage.setItem('currentUser', username);
-        checkAuth();
-    });
-
-    // Handle logout
-    logoutBtn.addEventListener('click', function() {
-        localStorage.removeItem('currentUser');
-        checkAuth();
-    });
-
-    // Initial auth check
-    checkAuth();
+                if (response.ok) {
+                    window.location.href = '/login'; // Redirect to login page after logout
+                } else {
+                    alert('Logout failed');
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+                alert('An error occurred during logout. Please try again.');
+            }
+        });
+    }
 });
