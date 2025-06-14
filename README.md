@@ -2,41 +2,66 @@
  This project represents a unique opportunity to address a specific need within the investment community, and we invite anyone with an interest in stock analysis, programming, or data visualization to join us in bringing this vision to life. Together, we can create a powerful tool that enhances the investment decision-making process. 
 
 TO RUN THE APP USING VS CODE
-1. Open ".env_sample" file and type in Alpha Vantage API key.
-2. Rename ".env_sample" file to ".env"
-3. Open Terminal in VS CODE and Type "python app.py"
-4. CTRL CLICK the website address that pops up. You should see something like "Running on http://126.0.1.2:5000"
-5. Your Browser will display the App.
+1. Create a .env file and add your Alpha Vantage API key and a secret key:
+```env
+API_KEY=ALPHA_VANTAGE_API_KEY
+SECRET_KEY=GENERATED_SECRET_KEY
+```
+
+2. Open the Terminal in VS Code and run:
+```env
+python app.py
+```
+
+3. CTRL+Click the address that appears (e.g., http://127.0.0.1:5000).
+3. Your browser will open and display the app!
 
 
-Update  |  11/6/2024  |  3:53pm
-- Make sure that when you open the index.html file, that you are using vscode and that you also have already downloaded file into your vscode environment.
 
-Update | 11/14/2024 | 12:02pm
-- Added the Metrics for Levered free Cash flow (LCFC), Payout Ratio, Debt Levels. Only Payout Ratio and Debt Levels are calculated in the dividend score 50/50. 
 
-Update | 11/19/2024 | 18:41pm
-- Formatted numbers displayed on the dashboard for everything except LCFC and Debt Ratio.
 
-Update | 11/20/2024 | 16:42pm
-- Replaced LCFC with EPS
-- Replaced Debt Ratio Display with Company Name
-- Changed chart look and size
-- Made Logout button look better
-- Added the Username to display on Dashboard
+📅 Update Log:
 
-Update | 11/22/2014 | 21:41pm
-- Hide the API key
-- When pull the updated code from GitHub, change the name .env_sample file to .env
-- In the .env file replace the YOUR_API_KEY_HERE with the actual API key with NO quotation marks or anything
-- Do not push the .env file into GitHub, save it locally
+🗓️ 11/06/2024 – 3:53 PM
+Make sure to open index.html using VS Code.
+Ensure all files are downloaded and opened within your VS Code environment.
 
-Update | 11/24/2024 | 4:00pm
-- Added a cashflow chart in the dashboard. The chart is interactive and you can hover over the data points to see the exact value.
+🗓️ 11/14/2024 – 12:02 PM
+Added new metrics:
+Levered Free Cash Flow (LCFC)
+Payout Ratio
+Debt Levels
+Only Payout Ratio and Debt Levels are used in the Dividend Score (weighted 50/50).
 
-Update | 11/25/2024 | 10:03am
-- Added some error handling
+🗓️ 11/19/2024 – 6:41 PM
+Formatted number displays across the dashboard (except for LCFC and Debt Ratio).
 
-Update | 12/4/2024 | 11:11pm
-- Added dynamic coloring to the dividend Score display
-- Changed dashboard layout
+🗓️ 11/20/2024 – 4:42 PM
+Replaced LCFC with EPS.
+Replaced Debt Ratio display with Company Name.
+Updated chart appearance and size.
+Improved the look of the Logout button.
+Displayed username on the dashboard.
+
+🗓️ 11/22/2024 – 9:41 PM
+Hid the API key from public view.
+After pulling the latest code from GitHub:
+Rename .env_sample to .env.
+Replace YOUR_API_KEY_HERE with your actual API key (no quotes).
+Do not push the .env file to GitHub—keep it local.
+
+🗓️ 11/24/2024 – 4:00 PM
+Added an interactive cashflow chart to the dashboard.
+You can hover over data points to see exact values.
+
+🗓️ 11/25/2024 – 10:03 AM
+Added basic error handling.
+
+🗓️ 12/04/2024 – 11:11 PM
+Added dynamic coloring to the Dividend Score display.
+Updated the dashboard layout.
+
+🗓️ 6/13/2025 – 11:13 PM
+Fixed Error when some stock tickers where not displaying payout ratio and dividend score
+Dashboard redesign
+Separated login overlay into seperate html files
