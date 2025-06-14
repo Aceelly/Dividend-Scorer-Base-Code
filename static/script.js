@@ -3,8 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const payoutRatioValue = document.getElementById('payout-ratio-value');
     const dividendYieldValue = document.getElementById('dividend-yield-value');
     const dividendScoreValue = document.getElementById('dividend-score-value');
-    const companyNameValue = document.getElementById('free-cashflow-generation-score-value'); 
-    const epsValue = document.getElementById('total-investment-value'); // Use EPS element
+    const companyNameValue = document.getElementById('company-name-value'); 
+    const epsValue = document.getElementById('eps-value');
     const marketCapValue = document.getElementById('market-cap-value');
 
     // Debounce function to limit API calls
@@ -65,10 +65,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Error:', error);
-            dividendYieldValue.textContent = 'Error fetching data';
-            marketCapValue.textContent = 'Error fetching data';
-            companyNameValue.textContent = 'Error fetching data'; // Set error for stock name
-            epsValue.textContent = 'Error fetching data'; // Set error for EPS
+            dividendYieldValue.textContent = 'Error';
+            marketCapValue.textContent = 'Error';
+            companyNameValue.textContent = 'Error';
+            epsValue.textContent = 'Error';
         }
     }
 
@@ -96,23 +96,25 @@ document.addEventListener('DOMContentLoaded', function() {
             // Round dividend score to a whole number
             dividendScoreValue.textContent = Math.round(data['dividend_score']); 
             payoutRatioValue.textContent = `${(data['payout_ratio'] * 100).toFixed(1)}%`; // Format payout ratio as percentage
-            // Apply color class based on dividend score
+            
+            // Apply color class based on dividend score to the main score card
             const score = Math.round(data['dividend_score']);
-            dividendScoreValue.className = ''; // Reset class list
+            const mainScoreCard = document.querySelector('.main-score-card');
+            mainScoreCard.className = 'metric-card main-score-card'; // Reset class list
             if (score >= 78) {
-                dividendScoreValue.classList.add('extremely-safe');
+                mainScoreCard.classList.add('extremely-safe');
             } else if (score >= 60) {
-                dividendScoreValue.classList.add('safe');
+                mainScoreCard.classList.add('safe');
             } else if (score >= 36) {
-                dividendScoreValue.classList.add('unsafe');
+                mainScoreCard.classList.add('unsafe');
             } else {
-                dividendScoreValue.classList.add('extremely-unsafe');
+                mainScoreCard.classList.add('extremely-unsafe');
             }
 
         } catch (error) {
             console.error('Error:', error);
-            dividendScoreValue.textContent = 'Error fetching data';
-            payoutRatioValue.textContent = 'Error fetching data'; 
+            dividendScoreValue.textContent = 'Error';
+            payoutRatioValue.textContent = 'Error'; 
         }
     }
 
@@ -134,9 +136,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
         return `$${value.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}${suffix}`;
     }
-
-    // Adjust Safety Chart height to match Dividend Score card on page load
-    const dividendScoreCard = document.querySelector('.metric-card:first-child');
-    const safetyChartContainer = document.getElementById('safety-chart-container');
-    safetyChartContainer.style.height = `${dividendScoreCard.offsetHeight}px`;
 });

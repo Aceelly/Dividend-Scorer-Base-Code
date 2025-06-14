@@ -1,9 +1,10 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     line-height: 1.6;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    background-color: #f8f9fa;
+    color: #343a40;
 }
 
 /* Auth Page Body Style */
@@ -20,7 +21,7 @@ body.auth-body {
     background-color: white;
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 400px;
     text-align: center;
@@ -40,12 +41,13 @@ body.auth-body {
     display: block;
     margin-bottom: 5px;
     color: #2e7d32;
+    font-weight: 600;
 }
 
 .auth-container input[type="text"],
 .auth-container input[type="password"] {
     width: calc(100% - 16px); /* Account for padding */
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
     margin-top: 4px;
@@ -53,13 +55,14 @@ body.auth-body {
 
 .auth-container button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     background-color: #4caf50;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
+    font-weight: 600;
     margin-top: 1rem;
     transition: background-color 0.3s;
 }
@@ -76,6 +79,7 @@ body.auth-body {
 .auth-container a {
     color: #4caf50;
     text-decoration: none;
+    font-weight: 600;
 }
 
 .auth-container a:hover {
@@ -98,7 +102,14 @@ body.auth-body {
     border: 1px solid #ffb74d;
 }
 
-/* Header with Logout Button */
+/* Main Container and Header */
+.container {
+    width: 95%;
+    max-width: 1400px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
 .header {
     display: flex;
     justify-content: space-between;
@@ -106,13 +117,20 @@ body.auth-body {
     margin-bottom: 2rem;
 }
 
+.header h1 {
+    color: #2e7d32;
+    margin: 0;
+}
+
 .logout-btn {
-    padding: 8px 16px;
+    padding: 10px 20px;
     background-color: #f44336;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
     transition: background-color 0.3s;
 }
 
@@ -120,181 +138,195 @@ body.auth-body {
     background-color: #d32f2f;
 }
 
-/* Existing Main Content Styles */
-.container {
-    width: 90%;
-    max-width: 1200px;
-    margin: auto;
-    overflow: hidden;
-    padding: 20px;
-    background-color: white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
-    margin-top: 20px;
-}
-
-h1, h2 {
-    color: #2e7d32;
-    text-align: center;
-}
-
-.main-content {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
 .main-content > .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0; /* Reset margin for this specific header */
+    margin-bottom: 1rem;
 }
 
 .search-bar {
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    width: 200px; /* Adjust as needed */
+    width: 300px;
+    font-size: 16px;
 }
 
-.metric-cards {
+/* Dashboard Grid Layout */
+.dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto;
     gap: 20px;
-}
-
-.dividend-score-row {
-    display: flex;
-    gap: 20px;
-    grid-column: 1 / -1; /* Span across all columns */
 }
 
 .metric-card {
-    background-color: #e8f5e9; /* Light green background */
-    border: 1px solid #c8e6c9;
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
     border-radius: 8px;
     padding: 20px;
-    text-align: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    flex: 1;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .metric-card h3 {
-    color: #2e7d32;
+    color: #6c757d;
+    font-size: 1rem;
+    font-weight: 600;
     margin-top: 0;
+    margin-bottom: 10px;
+    text-transform: uppercase;
 }
 
 .metric-card h2 {
-    color: #4caf50;
-    font-size: 2em;
-    margin-bottom: 0;
+    color: #343a40;
+    font-size: 2.25rem;
+    margin: 0;
 }
 
-.safety-chart-container {
-    flex: 1;
+/* Main Score Card */
+.main-score-card {
+    grid-column: 1 / 3;
+    grid-row: 1 / 2;
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    color: white;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    background-color: #f9f9f9;
-    padding: 20px;
+    align-items: center;
+}
+
+.main-score-card h3 {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.main-score-card h2 {
+    color: white;
+    font-size: 5rem;
+    font-weight: 700;
+}
+
+/* Safety Chart Card */
+.safety-chart-card {
+    grid-column: 3 / 5;
+    grid-row: 1 / 2;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #ffffff; /* Ensure white background */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .safety-chart {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 10px;
-    margin-top: 20px;
+    border-spacing: 0; /* Remove default spacing */
+    margin-top: 0; /* Remove default margin */
+    font-size: 0.9rem;
 }
 
 .safety-chart thead th {
-    background-color: #4caf50;
-    color: white;
-    padding: 10px;
-    border-radius: 4px;
+    background-color: #f8f9fa; /* Light background for header */
+    color: #343a40;
+    padding: 12px 10px;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 0; /* Remove border-radius from th */
 }
 
-.safety-chart tr {
-    transition: transform 0.2s;
+.safety-chart tbody tr {
+    transition: background-color 0.2s;
 }
 
-.safety-chart tr:hover {
-    transform: scale(1.02);
+.safety-chart tbody tr:last-child td {
+    border-bottom: none;
 }
 
 .safety-chart td {
-    padding: 12px;
+    padding: 12px 10px;
     text-align: center;
-    border-radius: 4px;
-    font-weight: bold;
+    font-weight: 500;
+    border-bottom: 1px solid #e9ecef; /* Add subtle border between rows */
 }
 
-.safety-chart td:first-child {
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
+/* Specific color styles for safety chart rows */
+.safety-chart .extremely-safe td {
+    background-color: #e8f5e9; /* Very light green */
+    color: #2e7d32;
+}
+.safety-chart .safe td {
+    background-color: #f0f8ee; /* Slightly lighter green */
+    color: #5cb85c;
+}
+.safety-chart .unsafe td {
+    background-color: #fff8e1; /* Light yellow */
+    color: #ffc107;
+}
+.safety-chart .extremely-unsafe td {
+    background-color: #ffebee; /* Light red */
+    color: #dc3545;
 }
 
-.safety-chart td:last-child {
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-}
-
-/* Color classes for scores */
-.extremely-safe {
-    background-color: #4caf50; /* Green */
-    color: white;
-}
-
-.safe {
-    background-color: #8bc34a; /* Light Green */
-    color: white;
-}
-
-.unsafe {
-    background-color: #ffc107; /* Amber */
-    color: black;
-}
-
-.extremely-unsafe {
-    background-color: #f44336; /* Red */
-    color: white;
-}
-
-/* Cashflow Chart Specific Styles */
-.cashflow-chart {
-    background-color: #f9f9f9;
-    padding: 20px;
+/* Cashflow Chart Card */
+.cashflow-chart-card {
+    grid-column: 1 / 5;
+    grid-row: auto; /* Let it flow naturally at the bottom */
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-top: 20px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.cashflow-chart h2 {
+.cashflow-chart-card h2 {
+    text-align: center;
     margin-top: 0;
     margin-bottom: 15px;
+    color: #2e7d32;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .main-score-card, .safety-chart-card, .cashflow-chart-card {
+        grid-column: 1 / 3;
+    }
+    .safety-chart-card {
+        grid-row: 2 / 3; /* Keep safety chart below main score on medium screens */
+    }
+    .cashflow-chart-card {
+        grid-row: auto; /* Let it flow naturally */
+    }
 }
 
 @media (max-width: 768px) {
-    .main-content > .header {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    .main-score-card, .safety-chart-card, .cashflow-chart-card {
+        grid-column: 1 / 2;
+    }
+    .safety-chart-card {
+        grid-row: auto; /* Let it flow naturally on small screens */
+    }
+    .cashflow-chart-card {
+        grid-row: auto;
+    }
+    .header {
         flex-direction: column;
         align-items: flex-start;
     }
     .search-bar {
         width: 100%;
         margin-top: 10px;
-    }
-    .dividend-score-row {
-        flex-direction: column;
-    }
-    .metric-card {
-        flex: none; /* Remove flex-grow on small screens */
-        width: 100%;
-    }
-    .safety-chart-container {
-        width: 100%;
-        margin-top: 20px;
     }
 }
