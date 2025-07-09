@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const epsValue = document.getElementById('eps-value');
     const marketCapValue = document.getElementById('market-cap-value');
     const recessionPerformanceValue = document.getElementById('recession-performance-value');
+    const dividendLongevityValue = document.getElementById('dividend-longevity-value');
     const mainScoreCard = document.querySelector('.main-score-card');
 
     // Debounce function to limit API calls
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
             epsValue.textContent = 'N/A'; // Reset EPS value
             marketCapValue.textContent = 'N/A';
             recessionPerformanceValue.textContent = 'N/A';
+            dividendLongevityValue.textContent = 'N/A';
             mainScoreCard.className = 'metric-card main-score-card'; // Reset class list
         }
     }, 600)); // Delay API calls by 300ms after typing stops
@@ -74,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 payoutRatioValue.textContent = 'N/A';
                 dividendYieldValue.textContent = 'N/A';
                 recessionPerformanceValue.textContent = 'N/A';
+                dividendLongevityValue.textContent = 'N/A';
                 mainScoreCard.className = 'metric-card main-score-card'; // Reset class list
             } else {
                 dividendYieldValue.textContent = `${(dividendYield * 100).toFixed(2)}%`; 
@@ -89,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dividendScoreValue.textContent = 'Error';
             payoutRatioValue.textContent = 'Error';
             recessionPerformanceValue.textContent = 'Error';
+            dividendLongevityValue.textContent = 'Error';
         }
     }
 
@@ -117,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dividendScoreValue.textContent = Math.round(data['dividend_score']); 
             payoutRatioValue.textContent = `${(data['payout_ratio'] * 100).toFixed(1)}%`; // Format payout ratio as percentage
             recessionPerformanceValue.textContent = data['recession_label'];
+            dividendLongevityValue.textContent = `${data['dividend_longevity_streak']} years`;
             
             // Apply color class based on dividend score to the main score card
             const score = Math.round(data['dividend_score']);
@@ -136,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dividendScoreValue.textContent = 'Error';
             payoutRatioValue.textContent = 'Error'; 
             recessionPerformanceValue.textContent = 'Error';
+            dividendLongevityValue.textContent = 'Error';
         }
     }
 
