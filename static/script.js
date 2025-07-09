@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const companyNameValue = document.getElementById('company-name-value'); 
     const epsValue = document.getElementById('eps-value');
     const marketCapValue = document.getElementById('market-cap-value');
+    const mainScoreCard = document.querySelector('.main-score-card');
 
     // Debounce function to limit API calls
     function debounce(func, wait) {
@@ -21,7 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const ticker = e.target.value;
         if (ticker.length > 0) {
             fetchStockData(ticker);
-            fetchDividendScore(ticker); 
             fetchCashflowData(ticker); // Added call to fetch cashflow data
         } else {
             payoutRatioValue.textContent = 'N/A';
@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
             companyNameValue.textContent = 'N/A'; 
             epsValue.textContent = 'N/A'; // Reset EPS value
             marketCapValue.textContent = 'N/A';
+            mainScoreCard.className = 'metric-card main-score-card'; // Reset class list
         }
     }, 600)); // Delay API calls by 300ms after typing stops
 
@@ -58,10 +59,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Invalid or missing data from API. Check your API key and ticker symbol.');
             }
 
-            dividendYieldValue.textContent = `${(parseFloat(data['DividendYield']) * 100).toFixed(2)}%`; 
+            const dividendYield = parseFloat(data['DividendYield']);
+            
+            // Display general stock data
             marketCapValue.textContent = formatMarketCap(data['MarketCapitalization']); // Format market cap
             companyNameValue.textContent = data['Name']; // Display stock name
             epsValue.textContent = data['EPS']; // Display EPS
+
+            // Check for dividend payment based on DividendYield
+            if (dividendYield === 0 || isNaN(dividendYield)) {
+                dividendScoreValue.textContent = 'No Dividend';
+                payoutRatioValue.textContent = 'N/A';
+                dividendYieldValue.textContent = 'N/A';
+                mainScoreCard.className = 'metric-card main-score-card'; // Reset class list
+            } else {
+                dividendYieldValue.textContent = `${(dividendYield * 100).toFixed(2)}%`; 
+                fetchDividendScore(ticker); // Only fetch score if there is a dividend
+            }
 
         } catch (error) {
             console.error('Error:', error);
@@ -69,6 +83,8 @@ document.addEventListener('DOMContentLoaded', function() {
             marketCapValue.textContent = 'Error';
             companyNameValue.textContent = 'Error';
             epsValue.textContent = 'Error';
+            dividendScoreValue.textContent = 'Error';
+            payoutRatioValue.textContent = 'Error';
         }
     }
 
@@ -99,7 +115,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Apply color class based on dividend score to the main score card
             const score = Math.round(data['dividend_score']);
-            const mainScoreCard = document.querySelector('.main-score-card');
             mainScoreCard.className = 'metric-card main-score-card'; // Reset class list
             if (score >= 78) {
                 mainScoreCard.classList.add('extremely-safe');

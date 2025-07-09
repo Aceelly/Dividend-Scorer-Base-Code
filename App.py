@@ -94,6 +94,12 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
     # Calculate the weighted dividend score (1/3 weight for each metric)
     weighted_dividend_score = (payout_score / 3) + (debt_score / 3) + (free_cashflow_score / 3)
 
+    print(f"Calculated Scores:")
+    print(f"  Payout Score: {payout_score:.2f}")
+    print(f"  Debt Score: {debt_score:.2f}")
+    print(f"  Free Cashflow Score: {free_cashflow_score:.2f}")
+    print(f"  Weighted Dividend Score: {weighted_dividend_score:.2f}")
+
     return {
         'dividend_score': weighted_dividend_score, 
         'payout_ratio': payout_ratio, 
