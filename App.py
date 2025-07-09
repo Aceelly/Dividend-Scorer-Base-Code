@@ -59,18 +59,12 @@ class User(UserMixin):
 def load_user(user_id):
     return User.get(user_id)
 
-def calculate_recession_performance(ticker, api_key):
-    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol={ticker}&apikey={api_key}'
-    response = requests.get(url)
-    data = response.json()
+def calculate_recession_performance(time_series_data):
+    if not time_series_data:
+        return 50, "Neutral"
 
-    if "Monthly Adjusted Time Series" not in data:
-        return 50, "Neutral" # Assume neutral if no data
-
-    dividend_data = data["Monthly Adjusted Time Series"]
     dividends = {}
-
-    for date_str, values in dividend_data.items():
+    for date_str, values in time_series_data.items():
         date = datetime.datetime.strptime(date_str, "%Y-%m-%d")
         year_month = date.strftime("%Y-%m")
         
@@ -87,7 +81,57 @@ def calculate_recession_performance(ticker, api_key):
     else: # div_2020 < div_2019
         return 25, "Bad"
 
-def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance, recession_score):
+import datetime
+
+def calculate_dividend_longevity(time_series_data):
+    if not time_series_data:
+        return 0, 0
+
+    dividends_by_year = {}
+    for date_str, values in time_series_data.items():
+        date = datetime.datetime.strptime(date_str, "%Y-%m-%d")
+        year = date.year
+        dividend = float(values.get("7. dividend amount", 0))
+
+        if dividend > 0:
+            dividends_by_year.setdefault(year, 0)
+            dividends_by_year[year] += 1
+
+    if not dividends_by_year:
+        return 0, 0
+
+    # Get the earliest dividend year
+    min_year = min(dividends_by_year)
+
+    # Build the set of "consistent" dividend years:
+    # Normally need 4+ payments, but allow 2+ in the first year (partial start)
+    consistent_years = {
+        year for year, count in dividends_by_year.items()
+        if count >= 4 or (year == min_year and count >= 2)
+    }
+
+    print(f"Consistent Dividend Years: {sorted(list(consistent_years))}")
+    if not consistent_years:
+        return 0, 0
+
+    current_year = datetime.datetime.now().year
+
+    # Start from the most recent year that qualifies
+    year = current_year
+    while year not in consistent_years and year >= min(consistent_years):
+        year -= 1
+
+    # Count backwards to determine streak
+    streak = 0
+    while year in consistent_years:
+        streak += 1
+        year -= 1
+
+    dividend_longevity_score = min(int(streak * 4.99), 100)
+    return streak, dividend_longevity_score
+
+
+def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance, recession_score, dividend_longevity_score):
     # Calculate payout ratio and its corresponding score
     payout_ratio = dividend_payout / net_income if net_income != 0 else 0
 
@@ -120,13 +164,14 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
     if free_cashflow_score < 0:
         free_cashflow_score = 0
 
-    # Calculate the weighted dividend score (now including recession score)
-    weighted_dividend_score = (payout_score * 0.4) + (debt_score * 0.4) + (recession_score * 0.2)
+    # Calculate the weighted dividend score (adjusting weights)
+    weighted_dividend_score = (payout_score * 0.3) + (debt_score * 0.3) + (recession_score * 0.2) + (dividend_longevity_score * 0.2)
 
     print(f"Calculated Scores:")
     print(f"  Payout Score: {payout_score:.2f}")
     print(f"  Debt Score: {debt_score:.2f}")
     print(f"  Recession Score: {recession_score}")
+    print(f"  Dividend Longevity Score: {dividend_longevity_score}")
     print(f"  Weighted Dividend Score: {weighted_dividend_score:.2f}")
 
     return {
@@ -143,7 +188,8 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
         'payout_score': payout_score,
         'debt_score': debt_score,
         'free_cashflow_score': free_cashflow_score,
-        'recession_score': recession_score
+        'recession_score': recession_score,
+        'dividend_longevity_score': dividend_longevity_score
     }
 
 @app.route('/calculate', methods=['POST'])
@@ -224,8 +270,6 @@ def get_stock_data():
     response = requests.get(url)
     data = response.json()
 
-    print(f"Raw API Response (get_stock_data): {data}")
-
     # Handle cases where the API returns an error
     if 'Error Message' in data:
         return jsonify({'error': data['Error Message']}), 500
@@ -248,8 +292,17 @@ def get_dividend_score():
     if not api_key:
         return jsonify({'error': 'API key is missing'}), 500 # Load the API key securely from the environment
     
+    # Make a single API call for monthly adjusted data
+    url_ts = f'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol={ticker}&apikey={api_key}'
+    response_ts = requests.get(url_ts)
+    data_ts = response_ts.json()
+    time_series_data = data_ts.get("Monthly Adjusted Time Series")
+
     # Get recession performance score
-    recession_score, recession_label = calculate_recession_performance(ticker, api_key)
+    recession_score, recession_label = calculate_recession_performance(time_series_data)
+    
+    # Get dividend longevity score
+    dividend_longevity_streak, dividend_longevity_score = calculate_dividend_longevity(time_series_data)
 
     # URLs to get cash flow and balance sheet data
     url_cf = f'https://www.alphavantage.co/query?function=CASH_FLOW&symbol={ticker}&apikey={api_key}'
@@ -258,9 +311,6 @@ def get_dividend_score():
     response_bs = requests.get(url_bs)
     data_cf = response_cf.json()
     data_bs = response_bs.json()
-
-    print(f"Raw API Response (CASH_FLOW): {data_cf}")
-    print(f"Raw API Response (BALANCE_SHEET): {data_bs}")
 
     try:
         # Check for API error messages in cash flow data
@@ -319,10 +369,11 @@ def get_dividend_score():
         calculated_data = calculate_dividend_score_metrics(
             dividend_payout, net_income, long_term_debt, total_shareholder_equity,
             operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance,
-            recession_score
+            recession_score, dividend_longevity_score
         )
         
         calculated_data['recession_label'] = recession_label
+        calculated_data['dividend_longevity_streak'] = dividend_longevity_streak
 
         # Return all calculated data as JSON response
         return jsonify(calculated_data)
