@@ -65,3 +65,6 @@ Updated the dashboard layout.
 Fixed Error when some stock tickers where not displaying payout ratio and dividend score
 Dashboard redesign
 Separated login overlay into seperate html files
+
+🗓️ 7/09/2025 – 2:40 PM
+Companies with no dividend will display "No Dividend on the Dashboard"
