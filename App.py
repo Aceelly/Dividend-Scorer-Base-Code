@@ -6,6 +6,7 @@ import os
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
+import datetime
 
 # Load environment variables
 load_dotenv()
@@ -58,7 +59,35 @@ class User(UserMixin):
 def load_user(user_id):
     return User.get(user_id)
 
-def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance):
+def calculate_recession_performance(ticker, api_key):
+    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol={ticker}&apikey={api_key}'
+    response = requests.get(url)
+    data = response.json()
+
+    if "Monthly Adjusted Time Series" not in data:
+        return 50, "Neutral" # Assume neutral if no data
+
+    dividend_data = data["Monthly Adjusted Time Series"]
+    dividends = {}
+
+    for date_str, values in dividend_data.items():
+        date = datetime.datetime.strptime(date_str, "%Y-%m-%d")
+        year_month = date.strftime("%Y-%m")
+        
+        if year_month in ["2019-12", "2020-12"]:
+            dividends[year_month] = float(values.get("7. dividend amount", 0))
+
+    div_2019 = dividends.get("2019-12", 0)
+    div_2020 = dividends.get("2020-12", 0)
+
+    if div_2019 == 0 and div_2020 == 0:
+        return 50, "Neutral"
+    elif div_2020 >= div_2019:
+        return 85, "Good"
+    else: # div_2020 < div_2019
+        return 25, "Bad"
+
+def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance, recession_score):
     # Calculate payout ratio and its corresponding score
     payout_ratio = dividend_payout / net_income if net_income != 0 else 0
 
@@ -91,13 +120,13 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
     if free_cashflow_score < 0:
         free_cashflow_score = 0
 
-    # Calculate the weighted dividend score (1/3 weight for each metric)
-    weighted_dividend_score = (payout_score / 3) + (debt_score / 3) + (free_cashflow_score / 3)
+    # Calculate the weighted dividend score (now including recession score)
+    weighted_dividend_score = (payout_score * 0.4) + (debt_score * 0.4) + (recession_score * 0.2)
 
     print(f"Calculated Scores:")
     print(f"  Payout Score: {payout_score:.2f}")
     print(f"  Debt Score: {debt_score:.2f}")
-    print(f"  Free Cashflow Score: {free_cashflow_score:.2f}")
+    print(f"  Recession Score: {recession_score}")
     print(f"  Weighted Dividend Score: {weighted_dividend_score:.2f}")
 
     return {
@@ -113,7 +142,8 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
         'lfcf_ratio': lfcf_ratio,
         'payout_score': payout_score,
         'debt_score': debt_score,
-        'free_cashflow_score': free_cashflow_score
+        'free_cashflow_score': free_cashflow_score,
+        'recession_score': recession_score
     }
 
 @app.route('/calculate', methods=['POST'])
@@ -217,6 +247,10 @@ def get_dividend_score():
     api_key = os.getenv ('API_KEY') 
     if not api_key:
         return jsonify({'error': 'API key is missing'}), 500 # Load the API key securely from the environment
+    
+    # Get recession performance score
+    recession_score, recession_label = calculate_recession_performance(ticker, api_key)
+
     # URLs to get cash flow and balance sheet data
     url_cf = f'https://www.alphavantage.co/query?function=CASH_FLOW&symbol={ticker}&apikey={api_key}'
     url_bs = f'https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol={ticker}&apikey={api_key}'
@@ -284,8 +318,11 @@ def get_dividend_score():
         # Calculate all scores using the dedicated function
         calculated_data = calculate_dividend_score_metrics(
             dividend_payout, net_income, long_term_debt, total_shareholder_equity,
-            operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance
+            operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance,
+            recession_score
         )
+        
+        calculated_data['recession_label'] = recession_label
 
         # Return all calculated data as JSON response
         return jsonify(calculated_data)
