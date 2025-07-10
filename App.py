@@ -59,6 +59,17 @@ class User(UserMixin):
 def load_user(user_id):
     return User.get(user_id)
 
+def get_industry_cyclicality_score(sector):
+    non_cyclical_sectors = ["Consumer Defensive", "Healthcare", "Utilities", "Consumer Staples", "Trade & Services"]
+    cyclical_sectors = ["Consumer Cyclical", "Industrials", "Energy", "Materials", "Real Estate", "Financial Services", "Technology", "Communication Services"]
+
+    if sector in non_cyclical_sectors:
+        return "Not Cyclical", 85
+    elif sector in cyclical_sectors:
+        return "Cyclical", 50
+    else:
+        return "Highly Cyclical or Unknown", 30
+
 def calculate_recession_performance(time_series_data):
     if not time_series_data:
         return 50, "Neutral"
@@ -80,8 +91,6 @@ def calculate_recession_performance(time_series_data):
         return 85, "Good"
     else: # div_2020 < div_2019
         return 25, "Bad"
-
-import datetime
 
 def calculate_dividend_longevity(time_series_data):
     if not time_series_data:
@@ -110,7 +119,6 @@ def calculate_dividend_longevity(time_series_data):
         if count >= 4 or (year == min_year and count >= 2)
     }
 
-    print(f"Consistent Dividend Years: {sorted(list(consistent_years))}")
     if not consistent_years:
         return 0, 0
 
@@ -130,8 +138,7 @@ def calculate_dividend_longevity(time_series_data):
     dividend_longevity_score = min(int(streak * 4.99), 100)
     return streak, dividend_longevity_score
 
-
-def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance, recession_score, dividend_longevity_score):
+def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance, recession_score, dividend_longevity_score, industry_cyclicality_score):
     # Calculate payout ratio and its corresponding score
     payout_ratio = dividend_payout / net_income if net_income != 0 else 0
 
@@ -165,13 +172,14 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
         free_cashflow_score = 0
 
     # Calculate the weighted dividend score (adjusting weights)
-    weighted_dividend_score = (payout_score * 0.3) + (debt_score * 0.3) + (recession_score * 0.2) + (dividend_longevity_score * 0.2)
+    weighted_dividend_score = (payout_score * 0.25) + (debt_score * 0.25) + (recession_score * 0.15) + (dividend_longevity_score * 0.15) + (industry_cyclicality_score * 0.20)
 
     print(f"Calculated Scores:")
     print(f"  Payout Score: {payout_score:.2f}")
     print(f"  Debt Score: {debt_score:.2f}")
     print(f"  Recession Score: {recession_score}")
     print(f"  Dividend Longevity Score: {dividend_longevity_score}")
+    print(f"  Industry Cyclicality Score: {industry_cyclicality_score}")
     print(f"  Weighted Dividend Score: {weighted_dividend_score:.2f}")
 
     return {
@@ -189,26 +197,9 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
         'debt_score': debt_score,
         'free_cashflow_score': free_cashflow_score,
         'recession_score': recession_score,
-        'dividend_longevity_score': dividend_longevity_score
+        'dividend_longevity_score': dividend_longevity_score,
+        'industry_cyclicality_score': industry_cyclicality_score
     }
-
-@app.route('/calculate', methods=['POST'])
-@login_required
-def calculate():
-    # This route is currently not used by the frontend for dividend scoring based on ticker
-    # It was previously used for manual input calculation.
-    # Keeping it for now, but the primary calculation happens via get_dividend_score
-    data = request.json
-    try:
-        # Placeholder for the actual dividend score calculation logic
-        # This function needs to be updated if it's intended for manual input calculation
-        # For now, it's a simplified version.
-        score = (float(data['payout_ratio']) + float(data['debt_levels']) + float(data['dividend_longevity']) + float(data['free_cash_flow']) + float(data['recent_growth'])) / 5
-        return jsonify({'score': round(score, 2)})
-    except ValueError as e:
-        return jsonify({'error': f'Invalid input. Please check your values. Error: {str(e)}'}), 400
-    except Exception as e:
-        return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
 @app.route('/')
 @login_required
@@ -257,133 +248,83 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-@app.route('/get_stock_data', methods=['GET', 'POST']) 
+@app.route('/api/get_all_data/<ticker>', methods=['GET'])
 @login_required
-def get_stock_data():
-    # Retrieve the stock ticker from the form data
-    ticker = request.form.get('ticker')
-    api_key = os.getenv ('API_KEY') # Load the API key securely from the environment
+def get_all_data(ticker):
+    api_key = os.getenv('API_KEY')
     if not api_key:
-        return jsonify({'error':'API key is missing'}), 500
-    # Create API URL to get stock data
-    url = f'https://www.alphavantage.co/query?function=OVERVIEW&symbol={ticker}&apikey={api_key}'
-    response = requests.get(url)
-    data = response.json()
+        return jsonify({'error': 'API key is missing'}), 500
 
-    # Handle cases where the API returns an error
-    if 'Error Message' in data:
-        return jsonify({'error': data['Error Message']}), 500
-
-    # Return relevant stock data (Dividend Yield and Market Capitalization)
-    return jsonify({
-        'DividendYield': data.get('DividendYield', 'N/A'),
-        'MarketCapitalization': data.get('MarketCapitalization', 'N/A'),
-        'Name': data.get('Name', 'N/A'), # Include stock name in response
-        'EPS': data.get('EPS', 'N/A'), # Include EPS in response
-        'ExDividendDate': data.get('ExDividendDate', 'N/A') # Include Ex-Dividend Date in response
-    })
-
-@app.route('/get_dividend_score', methods=['GET', 'POST'])
-@login_required
-def get_dividend_score():
-    # Retrieve the stock ticker from the form data
-    ticker = request.form.get('ticker')
-    api_key = os.getenv ('API_KEY') 
-    if not api_key:
-        return jsonify({'error': 'API key is missing'}), 500 # Load the API key securely from the environment
-    
-    # Make a single API call for monthly adjusted data
+    # API Calls
+    url_overview = f'https://www.alphavantage.co/query?function=OVERVIEW&symbol={ticker}&apikey={api_key}'
     url_ts = f'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol={ticker}&apikey={api_key}'
-    response_ts = requests.get(url_ts)
-    data_ts = response_ts.json()
-    time_series_data = data_ts.get("Monthly Adjusted Time Series")
-
-    # Get recession performance score
-    recession_score, recession_label = calculate_recession_performance(time_series_data)
-    
-    # Get dividend longevity score
-    dividend_longevity_streak, dividend_longevity_score = calculate_dividend_longevity(time_series_data)
-
-    # URLs to get cash flow and balance sheet data
     url_cf = f'https://www.alphavantage.co/query?function=CASH_FLOW&symbol={ticker}&apikey={api_key}'
     url_bs = f'https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol={ticker}&apikey={api_key}'
-    response_cf = requests.get(url_cf)
-    response_bs = requests.get(url_bs)
-    data_cf = response_cf.json()
-    data_bs = response_bs.json()
 
     try:
-        # Check for API error messages in cash flow data
-        if 'Error Message' in data_cf:
-            return jsonify({'error': f"Cash Flow API Error: {data_cf['Error Message']}"}), 500
-        if 'Error Message' in data_bs:
-            return jsonify({'error': f"Balance Sheet API Error: {data_bs['Error Message']}"}), 500
+        response_overview = requests.get(url_overview)
+        response_ts = requests.get(url_ts)
+        response_cf = requests.get(url_cf)
+        response_bs = requests.get(url_bs)
+
+        data_overview = response_overview.json()
+        data_ts = response_ts.json()
+        data_cf = response_cf.json()
+        data_bs = response_bs.json()
+
+        # --- Calculations ---
+        time_series_data = data_ts.get("Monthly Adjusted Time Series")
         
-        # Check if cash flow data is available and 'annualReports' is not empty
-        if 'annualReports' not in data_cf or not data_cf['annualReports']:
-            return jsonify({'error': 'No cash flow data available for this ticker'}), 500
-        if 'annualReports' not in data_bs or not data_bs['annualReports']:
-            return jsonify({'error': 'No balance sheet data available for this ticker'}), 500
+        recession_score, recession_label = calculate_recession_performance(time_series_data)
+        dividend_longevity_streak, dividend_longevity_score = calculate_dividend_longevity(time_series_data)
+        
+        sector = data_overview.get("Sector", "").title()
+        industry_cyclicality_label, industry_cyclicality_score = get_industry_cyclicality_score(sector)
 
-        # Extract latest annual dividend payout and net income from cash flow data
+        # --- Dividend Score Metrics ---
+        if 'annualReports' not in data_cf or not data_cf['annualReports'] or 'annualReports' not in data_bs or not data_bs['annualReports']:
+            return jsonify({'error': 'Insufficient financial data to calculate score'}), 500
+
         latest_cashflow = data_cf['annualReports'][0]
-        dividend_payout_str = latest_cashflow.get('dividendPayout', '0')
-        net_income_str = latest_cashflow.get('netIncome', '0')
+        dividend_payout = float(latest_cashflow.get('dividendPayout', '0').replace('None', '0'))
+        net_income = float(latest_cashflow.get('netIncome', '0').replace('None', '0'))
 
-        # Convert 'None' string to '0' before float conversion
-        dividend_payout = float(dividend_payout_str if dividend_payout_str != 'None' else '0')
-        net_income = float(net_income_str if net_income_str != 'None' else '0')
-
-        # Extract latest annual long-term debt and total shareholder equity from balance sheet data
         latest_balancesheet = data_bs['annualReports'][0]
-        long_term_debt_str = latest_balancesheet.get('longTermDebt', '0')
-        total_shareholder_equity_str = latest_balancesheet.get('totalShareholderEquity', '0')
+        long_term_debt = float(latest_balancesheet.get('longTermDebt', '0').replace('None', '0'))
+        total_shareholder_equity = float(latest_balancesheet.get('totalShareholderEquity', '0').replace('None', '0'))
 
-        # Convert 'None' string to '0' before float conversion
-        long_term_debt = float(long_term_debt_str if long_term_debt_str != 'None' else '0')
-        total_shareholder_equity = float(total_shareholder_equity_str if total_shareholder_equity_str != 'None' else '0')
+        operating_cashflow = float(latest_cashflow.get('operatingCashflow', '0').replace('None', '0'))
+        capital_expenditures = float(latest_cashflow.get('capitalExpenditures', '0').replace('None', '0'))
+        short_term_debt_repayments = float(latest_cashflow.get('proceedsFromRepaymentsOfShortTermDebt', '0').replace('None', '0'))
+        long_term_debt_issuance = float(latest_cashflow.get('proceedsFromIssuanceOfLongTermDebtAndCapitalSecuritiesNet', '0').replace('None', '0'))
 
-        # Fetch data for LFCF calculation
-        operating_cashflow_str = latest_cashflow.get('operatingCashflow', '0')
-        capital_expenditures_str = latest_cashflow.get('capitalExpenditures', '0')
-        short_term_debt_repayments_str = latest_cashflow.get('proceedsFromRepaymentsOfShortTermDebt', '0')
-        long_term_debt_issuance_str = latest_cashflow.get('proceedsFromIssuanceOfLongTermDebtAndCapitalSecuritiesNet', '0')
-
-        # Convert 'None' string to '0' before float conversion
-        operating_cashflow = float(operating_cashflow_str if operating_cashflow_str != 'None' else '0')
-        capital_expenditures = float(capital_expenditures_str if capital_expenditures_str != 'None' else '0')
-        short_term_debt_repayments = float(short_term_debt_repayments_str if short_term_debt_repayments_str != 'None' else '0')
-        long_term_debt_issuance = float(long_term_debt_issuance_str if long_term_debt_issuance_str != 'None' else '0')
-
-        print(f"Metrics for calculate_dividend_score_metrics:")
-        print(f"  dividend_payout: {dividend_payout}")
-        print(f"  net_income: {net_income}")
-        print(f"  long_term_debt: {long_term_debt}")
-        print(f"  total_shareholder_equity: {total_shareholder_equity}")
-        print(f"  operating_cashflow: {operating_cashflow}")
-        print(f"  capital_expenditures: {capital_expenditures}")
-        print(f"  short_term_debt_repayments: {short_term_debt_repayments}")
-        print(f"  long_term_debt_issuance: {long_term_debt_issuance}")
-
-        # Calculate all scores using the dedicated function
         calculated_data = calculate_dividend_score_metrics(
             dividend_payout, net_income, long_term_debt, total_shareholder_equity,
             operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance,
-            recession_score, dividend_longevity_score
+            recession_score, dividend_longevity_score, industry_cyclicality_score
         )
+
+        # --- Combine all data for response ---
+        response_data = {
+            'overview': {
+                'DividendYield': data_overview.get('DividendYield', 'N/A'),
+                'MarketCapitalization': data_overview.get('MarketCapitalization', 'N/A'),
+                'Name': data_overview.get('Name', 'N/A'),
+                'EPS': data_overview.get('EPS', 'N/A'),
+                'ExDividendDate': data_overview.get('ExDividendDate', 'N/A')
+            },
+            'scores': calculated_data,
+            'labels': {
+                'recession_label': recession_label,
+                'dividend_longevity_streak': dividend_longevity_streak,
+                'industry_cyclicality_label': industry_cyclicality_label
+            }
+        }
         
-        calculated_data['recession_label'] = recession_label
-        calculated_data['dividend_longevity_streak'] = dividend_longevity_streak
+        return jsonify(response_data)
 
-        # Return all calculated data as JSON response
-        return jsonify(calculated_data)
-
-    except (KeyError, ValueError, ZeroDivisionError) as e:
-        # Handle errors in calculation or missing data
-        print(f"Error in get_dividend_score: {e}")
-        return jsonify({'error': f'Error calculating dividend score: {str(e)}'}), 500
     except Exception as e:
-        print(f"An unexpected error occurred in get_dividend_score: {e}")
+        print(f"An unexpected error occurred in get_all_data: {e}")
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
 @app.route('/api/cashflow/<symbol>')

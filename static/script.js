@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const marketCapValue = document.getElementById('market-cap-value');
     const recessionPerformanceValue = document.getElementById('recession-performance-value');
     const dividendLongevityValue = document.getElementById('dividend-longevity-value');
+    const industryCyclicalityValue = document.getElementById('industry-cyclicality-value');
     const mainScoreCard = document.querySelector('.main-score-card');
 
     // Debounce function to limit API calls
@@ -23,125 +24,80 @@ document.addEventListener('DOMContentLoaded', function() {
     stockTickerInput.addEventListener('input', debounce(function(e) {
         const ticker = e.target.value;
         if (ticker.length > 0) {
-            fetchStockData(ticker);
-            fetchCashflowData(ticker); // Added call to fetch cashflow data
+            fetchAllData(ticker);
+            fetchCashflowData(ticker);
         } else {
             payoutRatioValue.textContent = 'N/A';
             dividendYieldValue.textContent = 'N/A';
             dividendScoreValue.textContent = 'N/A';
             companyNameValue.textContent = 'N/A'; 
-            epsValue.textContent = 'N/A'; // Reset EPS value
+            epsValue.textContent = 'N/A';
             marketCapValue.textContent = 'N/A';
             recessionPerformanceValue.textContent = 'N/A';
             dividendLongevityValue.textContent = 'N/A';
-            mainScoreCard.className = 'metric-card main-score-card'; // Reset class list
+            industryCyclicalityValue.textContent = 'N/A';
+            mainScoreCard.className = 'metric-card main-score-card';
         }
-    }, 600)); // Delay API calls by 300ms after typing stops
+    }, 600));
 
-    async function fetchStockData(ticker) {
+    async function fetchAllData(ticker) {
         try {
-            const response = await fetch('/get_stock_data', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `ticker=${ticker}`
-            });
-
-            console.log("Response:", response);
-
+            const response = await fetch(`/api/get_all_data/${ticker}`);
             if (!response.ok) {
-                const message = `HTTP error! status: ${response.status}`;
-                throw new Error(message);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-
             const data = await response.json();
-
-            console.log("Data:", data);
-
-            if (!data || !data['DividendYield']) {
-                throw new Error('Invalid or missing data from API. Check your API key and ticker symbol.');
+            if (data.error) {
+                throw new Error(data.error);
             }
 
-            const dividendYield = parseFloat(data['DividendYield']);
+            // Populate overview data
+            const overview = data.overview;
+            marketCapValue.textContent = formatMarketCap(overview.MarketCapitalization);
+            companyNameValue.textContent = overview.Name;
+            epsValue.textContent = overview.EPS;
             
-            // Display general stock data
-            marketCapValue.textContent = formatMarketCap(data['MarketCapitalization']); // Format market cap
-            companyNameValue.textContent = data['Name']; // Display stock name
-            epsValue.textContent = data['EPS']; // Display EPS
-
-            // Check for dividend payment based on DividendYield
+            const dividendYield = parseFloat(overview.DividendYield);
             if (dividendYield === 0 || isNaN(dividendYield)) {
                 dividendScoreValue.textContent = 'No Dividend';
                 payoutRatioValue.textContent = 'N/A';
                 dividendYieldValue.textContent = 'N/A';
                 recessionPerformanceValue.textContent = 'N/A';
                 dividendLongevityValue.textContent = 'N/A';
-                mainScoreCard.className = 'metric-card main-score-card'; // Reset class list
+                industryCyclicalityValue.textContent = 'N/A';
+                mainScoreCard.className = 'metric-card main-score-card';
             } else {
-                dividendYieldValue.textContent = `${(dividendYield * 100).toFixed(2)}%`; 
-                fetchDividendScore(ticker); // Only fetch score if there is a dividend
+                dividendYieldValue.textContent = `${(dividendYield * 100).toFixed(2)}%`;
+                
+                // Populate scores and labels
+                const scores = data.scores;
+                const labels = data.labels;
+
+                dividendScoreValue.textContent = Math.round(scores.dividend_score);
+                payoutRatioValue.textContent = `${(scores.payout_ratio * 100).toFixed(1)}%`;
+                recessionPerformanceValue.textContent = labels.recession_label;
+                dividendLongevityValue.textContent = `${labels.dividend_longevity_streak} years`;
+                industryCyclicalityValue.textContent = labels.industry_cyclicality_label;
+
+                // Apply color class based on dividend score
+                const score = Math.round(scores.dividend_score);
+                mainScoreCard.className = 'metric-card main-score-card';
+                if (score >= 78) {
+                    mainScoreCard.classList.add('extremely-safe');
+                } else if (score >= 60) {
+                    mainScoreCard.classList.add('safe');
+                } else if (score >= 36) {
+                    mainScoreCard.classList.add('unsafe');
+                } else {
+                    mainScoreCard.classList.add('extremely-unsafe');
+                }
             }
 
         } catch (error) {
-            console.error('Error:', error);
-            dividendYieldValue.textContent = 'Error';
-            marketCapValue.textContent = 'Error';
-            companyNameValue.textContent = 'Error';
-            epsValue.textContent = 'Error';
-            dividendScoreValue.textContent = 'Error';
-            payoutRatioValue.textContent = 'Error';
-            recessionPerformanceValue.textContent = 'Error';
-            dividendLongevityValue.textContent = 'Error';
-        }
-    }
-
-    async function fetchDividendScore(ticker) {
-        try {
-            const response = await fetch('/get_dividend_score', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `ticker=${ticker}`
-            });
-
-            if (!response.ok) {
-                const message = `HTTP error! status: ${response.status}`;
-                throw new Error(message);
-            }
-
-            const data = await response.json();
-
-            if (data.error) {
-                throw new Error(data.error);
-            }
-
-            // Round dividend score to a whole number
-            dividendScoreValue.textContent = Math.round(data['dividend_score']); 
-            payoutRatioValue.textContent = `${(data['payout_ratio'] * 100).toFixed(1)}%`; // Format payout ratio as percentage
-            recessionPerformanceValue.textContent = data['recession_label'];
-            dividendLongevityValue.textContent = `${data['dividend_longevity_streak']} years`;
-            
-            // Apply color class based on dividend score to the main score card
-            const score = Math.round(data['dividend_score']);
-            mainScoreCard.className = 'metric-card main-score-card'; // Reset class list
-            if (score >= 78) {
-                mainScoreCard.classList.add('extremely-safe');
-            } else if (score >= 60) {
-                mainScoreCard.classList.add('safe');
-            } else if (score >= 36) {
-                mainScoreCard.classList.add('unsafe');
-            } else {
-                mainScoreCard.classList.add('extremely-unsafe');
-            }
-
-        } catch (error) {
-            console.error('Error:', error);
-            dividendScoreValue.textContent = 'Error';
-            payoutRatioValue.textContent = 'Error'; 
-            recessionPerformanceValue.textContent = 'Error';
-            dividendLongevityValue.textContent = 'Error';
+            console.error('Error fetching all data:', error);
+            // Set all fields to 'Error'
+            const fields = [dividendYieldValue, marketCapValue, companyNameValue, epsValue, dividendScoreValue, payoutRatioValue, recessionPerformanceValue, dividendLongevityValue, industryCyclicalityValue];
+            fields.forEach(field => field.textContent = 'Error');
         }
     }
 
