@@ -138,26 +138,31 @@ def calculate_dividend_longevity(time_series_data):
     dividend_longevity_score = min(int(streak * 4.99), 100)
     return streak, dividend_longevity_score
 
+def calculate_payout_score(payout_ratio):
+    score = payout_ratio / 100
+    if score < 0:
+        return 0
+    elif score >= 1:
+        return (-0.1 * score) + 20
+    else:
+        return (-38 * payout_ratio) + 100
+
+def calculate_debt_score(debt_ratio):
+    score = (debt_ratio * -26) + 100
+    if score < 0:
+        return 0
+    elif score > 100:
+        return 100
+    return score
+
 def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance, recession_score, dividend_longevity_score, industry_cyclicality_score):
     # Calculate payout ratio and its corresponding score
     payout_ratio = dividend_payout / net_income if net_income != 0 else 0
-
-    payout_score = payout_ratio / 100
-    if payout_score < 0:
-        payout_score = 0
-    elif payout_score >= 1:
-        payout_score = (-0.1 * payout_score) + 20
-    else:
-        payout_score = (-38 * payout_ratio) + 100 # Corrected to use payout_ratio here
+    payout_score = calculate_payout_score(payout_ratio)
 
     # Calculate debt ratio and its corresponding score
     debt_ratio = long_term_debt / total_shareholder_equity if total_shareholder_equity != 0 else 0
-
-    debt_score = (debt_ratio * -26) + 100
-    if debt_score < 0:
-        debt_score = 0
-    elif debt_score > 100:
-        debt_score = 100
+    debt_score = calculate_debt_score(debt_ratio)
 
     # Calculate Net Debt Repayments
     net_debt_repayments = (short_term_debt_repayments or 0) + (long_term_debt_issuance or 0)
@@ -172,7 +177,7 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
         free_cashflow_score = 0
 
     # Calculate the weighted dividend score (adjusting weights)
-    weighted_dividend_score = (payout_score * 0.25) + (debt_score * 0.25) + (recession_score * 0.15) + (dividend_longevity_score * 0.15) + (industry_cyclicality_score * 0.20)
+    weighted_dividend_score = (payout_score * 0.50) + (debt_score * 0.28) + (recession_score * 0.08) + (dividend_longevity_score * 0.07) + (industry_cyclicality_score * 0.04)
 
     print(f"Calculated Scores:")
     print(f"  Payout Score: {payout_score:.2f}")
