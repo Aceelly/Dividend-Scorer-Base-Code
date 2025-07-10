@@ -67,4 +67,7 @@ Dashboard redesign
 Separated login overlay into seperate html files
 
 🗓️ 7/09/2025 – 2:40 PM
-Companies with no dividend will display "No Dividend on the Dashboard"
+Companies with no dividend will display "No Dividend on the Dashboard".
+Added a industry cyclicality score.
+Added a divdend longevity score.
+
