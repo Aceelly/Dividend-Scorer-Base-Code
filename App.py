@@ -60,8 +60,8 @@ def load_user(user_id):
     return User.get(user_id)
 
 def get_industry_cyclicality_score(sector):
-    non_cyclical_sectors = ["Consumer Defensive", "Healthcare", "Utilities", "Consumer Staples", "Trade & Services"]
-    cyclical_sectors = ["Consumer Cyclical", "Industrials", "Energy", "Materials", "Real Estate", "Financial Services", "Technology", "Communication Services"]
+    non_cyclical_sectors = ["Consumer Defensive", "Healthcare", "Utilities", "Consumer Staples", "Trade & Services","Life Sciences"]
+    cyclical_sectors = ["Manufacturing", "Consumer Cyclical", "Industrials", "Energy", "Materials", "Real Estate", "Financial Services", "Technology","Communication Services"]
 
     if sector in non_cyclical_sectors:
         return "Not Cyclical", 85
@@ -109,11 +109,7 @@ def calculate_dividend_longevity(time_series_data):
     if not dividends_by_year:
         return 0, 0
 
-    # Get the earliest dividend year
     min_year = min(dividends_by_year)
-
-    # Build the set of "consistent" dividend years:
-    # Normally need 4+ payments, but allow 2+ in the first year (partial start)
     consistent_years = {
         year for year, count in dividends_by_year.items()
         if count >= 4 or (year == min_year and count >= 2)
@@ -123,13 +119,10 @@ def calculate_dividend_longevity(time_series_data):
         return 0, 0
 
     current_year = datetime.datetime.now().year
-
-    # Start from the most recent year that qualifies
     year = current_year
     while year not in consistent_years and year >= min(consistent_years):
         year -= 1
 
-    # Count backwards to determine streak
     streak = 0
     while year in consistent_years:
         streak += 1
@@ -137,6 +130,48 @@ def calculate_dividend_longevity(time_series_data):
 
     dividend_longevity_score = min(int(streak * 4.99), 100)
     return streak, dividend_longevity_score
+
+def calculate_growth_score(income_statement_data):
+    if not income_statement_data or 'annualReports' not in income_statement_data or len(income_statement_data['annualReports']) < 2:
+        return 0, 0
+
+    annual_reports = sorted(income_statement_data['annualReports'], key=lambda x: x['fiscalDateEnding'])
+    
+    recent_reports = annual_reports[-5:]
+    
+    growth_rates = []
+    for i in range(1, len(recent_reports)):
+        try:
+            prev_ebitda = float(recent_reports[i-1]['ebitda'])
+            curr_ebitda = float(recent_reports[i]['ebitda'])
+            if prev_ebitda > 0:
+                growth = (curr_ebitda - prev_ebitda) / prev_ebitda
+                growth_rates.append(growth)
+                print(f"    Growth: {growth:.2%}")
+        except (ValueError, TypeError):
+            continue  # Skip invalid EBITDA data
+
+    if not growth_rates:
+        return 0, 0
+
+    average_growth = sum(growth_rates) / len(growth_rates)
+    print(f"  Average YoY EBITDA Growth: {average_growth:.2%}")
+    
+    # If average YoY growth is negative, return score of 0
+    if average_growth < 0:
+        return 0, average_growth
+    
+    # Apply scoring formula for non-negative growth
+    score_input = average_growth
+    if score_input > 1:
+        score_input = 1
+    elif score_input < 0:
+        score_input = 0
+    
+    score = (475 * score_input) + 5
+    score = min(score, 100)  # Cap the final score at 100
+    
+    return score, average_growth
 
 def calculate_payout_score(payout_ratio):
     score = payout_ratio / 100
@@ -155,8 +190,8 @@ def calculate_debt_score(debt_ratio):
         return 100
     return score
 
-def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance, recession_score, dividend_longevity_score, industry_cyclicality_score):
-    # Calculate payout ratio and its corresponding score
+def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance, recession_score, dividend_longevity_score, industry_cyclicality_score, growth_score):
+    # Calculate Payout Ratio and its corresponding score
     payout_ratio = dividend_payout / net_income if net_income != 0 else 0
     payout_score = calculate_payout_score(payout_ratio)
 
@@ -176,8 +211,7 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
     if free_cashflow_score < 0:
         free_cashflow_score = 0
 
-    # Calculate the weighted dividend score (adjusting weights)
-    weighted_dividend_score = (payout_score * 0.50) + (debt_score * 0.28) + (recession_score * 0.08) + (dividend_longevity_score * 0.07) + (industry_cyclicality_score * 0.04)
+    weighted_dividend_score = (payout_score * 0.303) + (debt_score * 0.197) + (recession_score * 0.013) + (dividend_longevity_score * 0.026) + (industry_cyclicality_score * 0.039) + (free_cashflow_score * 0.289) + (growth_score * 0.133)
 
     print(f"Calculated Scores:")
     print(f"  Payout Score: {payout_score:.2f}")
@@ -185,7 +219,9 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
     print(f"  Recession Score: {recession_score}")
     print(f"  Dividend Longevity Score: {dividend_longevity_score}")
     print(f"  Industry Cyclicality Score: {industry_cyclicality_score}")
+    print(f"  Growth Score: {growth_score:.2f}")
     print(f"  Weighted Dividend Score: {weighted_dividend_score:.2f}")
+    print(f"  Free Cashflow Score: {free_cashflow_score}")
 
     return {
         'dividend_score': weighted_dividend_score, 
@@ -203,13 +239,13 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
         'free_cashflow_score': free_cashflow_score,
         'recession_score': recession_score,
         'dividend_longevity_score': dividend_longevity_score,
-        'industry_cyclicality_score': industry_cyclicality_score
+        'industry_cyclicality_score': industry_cyclicality_score,
+        'growth_score': growth_score
     }
 
 @app.route('/')
 @login_required
 def index():
-    # Render the main page (index.html) for the application
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -238,7 +274,7 @@ def signup():
         if username in users:
             flash('Username already exists')
         else:
-            user_id = len(users) + 1 # Simple ID generation
+            user_id = len(users) + 1
             hashed_password = generate_password_hash(password)
             users[username] = {'id': user_id, 'password_hash': hashed_password}
             save_users(users)
@@ -253,40 +289,70 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-@app.route('/api/get_all_data/<ticker>', methods=['GET'])
+@app.route('/get_stock_data', methods=['GET', 'POST']) 
 @login_required
-def get_all_data(ticker):
+def get_stock_data():
+    ticker = request.form.get('ticker')
     api_key = os.getenv('API_KEY')
     if not api_key:
-        return jsonify({'error': 'API key is missing'}), 500
+        return jsonify({'error':'API key is missing'}), 500
+    
+    url = f'https://www.alphavantage.co/query?function=OVERVIEW&symbol={ticker}&apikey={api_key}'
+    response = requests.get(url)
+    data = response.json()
 
-    # API Calls
-    url_overview = f'https://www.alphavantage.co/query?function=OVERVIEW&symbol={ticker}&apikey={api_key}'
+    if 'Error Message' in data:
+        return jsonify({'error': data['Error Message']}), 500
+
+    sector = data.get("Sector", "").title()
+    industry_cyclicality_label, _ = get_industry_cyclicality_score(sector)
+
+    return jsonify({
+        'DividendYield': data.get('DividendYield', 'N/A'),
+        'MarketCapitalization': data.get('MarketCapitalization', 'N/A'),
+        'Name': data.get('Name', 'N/A'),
+        'EPS': data.get('EPS', 'N/A'),
+        'ExDividendDate': data.get('ExDividendDate', 'N/A'),
+        'industry_cyclicality_label': industry_cyclicality_label
+    })
+
+@app.route('/get_dividend_score', methods=['GET', 'POST'])
+@login_required
+def get_dividend_score():
+    ticker = request.form.get('ticker')
+    api_key = os.getenv('API_KEY') 
+    if not api_key:
+        return jsonify({'error': 'API key is missing'}), 500
+    
     url_ts = f'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol={ticker}&apikey={api_key}'
+    url_overview = f'https://www.alphavantage.co/query?function=OVERVIEW&symbol={ticker}&apikey={api_key}'
+    url_income = f'https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol={ticker}&apikey={api_key}'
     url_cf = f'https://www.alphavantage.co/query?function=CASH_FLOW&symbol={ticker}&apikey={api_key}'
     url_bs = f'https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol={ticker}&apikey={api_key}'
 
     try:
-        response_overview = requests.get(url_overview)
         response_ts = requests.get(url_ts)
+        response_overview = requests.get(url_overview)
+        response_income = requests.get(url_income)
         response_cf = requests.get(url_cf)
         response_bs = requests.get(url_bs)
 
-        data_overview = response_overview.json()
         data_ts = response_ts.json()
+        data_overview = response_overview.json()
+        data_income = response_income.json()
         data_cf = response_cf.json()
         data_bs = response_bs.json()
 
-        # --- Calculations ---
         time_series_data = data_ts.get("Monthly Adjusted Time Series")
         
         recession_score, recession_label = calculate_recession_performance(time_series_data)
         dividend_longevity_streak, dividend_longevity_score = calculate_dividend_longevity(time_series_data)
         
         sector = data_overview.get("Sector", "").title()
-        industry_cyclicality_label, industry_cyclicality_score = get_industry_cyclicality_score(sector)
+        _, industry_cyclicality_score = get_industry_cyclicality_score(sector)
 
-        # --- Dividend Score Metrics ---
+        growth_score, average_growth_rate = calculate_growth_score(data_income)
+
         if 'annualReports' not in data_cf or not data_cf['annualReports'] or 'annualReports' not in data_bs or not data_bs['annualReports']:
             return jsonify({'error': 'Insufficient financial data to calculate score'}), 500
 
@@ -306,30 +372,17 @@ def get_all_data(ticker):
         calculated_data = calculate_dividend_score_metrics(
             dividend_payout, net_income, long_term_debt, total_shareholder_equity,
             operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance,
-            recession_score, dividend_longevity_score, industry_cyclicality_score
+            recession_score, dividend_longevity_score, industry_cyclicality_score, growth_score
         )
-
-        # --- Combine all data for response ---
-        response_data = {
-            'overview': {
-                'DividendYield': data_overview.get('DividendYield', 'N/A'),
-                'MarketCapitalization': data_overview.get('MarketCapitalization', 'N/A'),
-                'Name': data_overview.get('Name', 'N/A'),
-                'EPS': data_overview.get('EPS', 'N/A'),
-                'ExDividendDate': data_overview.get('ExDividendDate', 'N/A')
-            },
-            'scores': calculated_data,
-            'labels': {
-                'recession_label': recession_label,
-                'dividend_longevity_streak': dividend_longevity_streak,
-                'industry_cyclicality_label': industry_cyclicality_label
-            }
-        }
         
-        return jsonify(response_data)
+        calculated_data['recession_label'] = recession_label
+        calculated_data['dividend_longevity_streak'] = dividend_longevity_streak
+        calculated_data['average_growth_rate'] = average_growth_rate
+
+        return jsonify(calculated_data)
 
     except Exception as e:
-        print(f"An unexpected error occurred in get_all_data: {e}")
+        print(f"An unexpected error occurred in get_dividend_score: {e}")
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
 @app.route('/api/cashflow/<symbol>')
@@ -347,7 +400,6 @@ def get_cashflow_data(symbol):
 
     annual_reports = data['annualReports']
 
-    # Extract relevant data
     cashflow_data = {
         'labels': [],
         'operatingCashflow': [],
@@ -357,17 +409,16 @@ def get_cashflow_data(symbol):
 
     for report in annual_reports:
         cashflow_data['labels'].append(report['fiscalDateEnding'])
-        cashflow_data['operatingCashflow'].append(float(report['operatingCashflow']) / 1e9)  # Convert to billions
-        cashflow_data['capitalExpenditures'].append(float(report['capitalExpenditures']) / 1e9)  # Convert to billions
+        cashflow_data['operatingCashflow'].append(float(report['operatingCashflow']) / 1e9)
+        cashflow_data['capitalExpenditures'].append(float(report['capitalExpenditures']) / 1e9)
         cashflow_data['freeCashflow'].append(
             float(report['operatingCashflow']) / 1e9 + float(report['capitalExpenditures']) / 1e9
         )
 
-    # Reverse the data to show chronological order
     for key in cashflow_data:
         cashflow_data[key].reverse()
 
     return jsonify(cashflow_data)
 
 if __name__ == '__main__':
-    app.run(debug=True)  # Run the application in debug mode
+    app.run(debug=True)

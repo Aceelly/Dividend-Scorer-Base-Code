@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const recessionPerformanceValue = document.getElementById('recession-performance-value');
     const dividendLongevityValue = document.getElementById('dividend-longevity-value');
     const industryCyclicalityValue = document.getElementById('industry-cyclicality-value');
+    const ebitdaGrowthValue = document.getElementById('ebitda-growth-value');
     const mainScoreCard = document.querySelector('.main-score-card');
 
     // Debounce function to limit API calls
@@ -24,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     stockTickerInput.addEventListener('input', debounce(function(e) {
         const ticker = e.target.value;
         if (ticker.length > 0) {
-            fetchAllData(ticker);
+            fetchStockData(ticker);
             fetchCashflowData(ticker);
         } else {
             payoutRatioValue.textContent = 'N/A';
@@ -36,87 +37,100 @@ document.addEventListener('DOMContentLoaded', function() {
             recessionPerformanceValue.textContent = 'N/A';
             dividendLongevityValue.textContent = 'N/A';
             industryCyclicalityValue.textContent = 'N/A';
+            ebitdaGrowthValue.textContent = 'N/A';
             mainScoreCard.className = 'metric-card main-score-card';
         }
     }, 600));
 
-    async function fetchAllData(ticker) {
+    async function fetchStockData(ticker) {
         try {
-            const response = await fetch(`/api/get_all_data/${ticker}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            const response = await fetch(`/get_stock_data`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `ticker=${ticker}`
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
-            if (data.error) {
-                throw new Error(data.error);
-            }
+            if (data.error) throw new Error(data.error);
 
-            // Populate overview data
-            const overview = data.overview;
-            marketCapValue.textContent = formatMarketCap(overview.MarketCapitalization);
-            companyNameValue.textContent = overview.Name;
-            epsValue.textContent = overview.EPS;
-            
-            const dividendYield = parseFloat(overview.DividendYield);
+            marketCapValue.textContent = formatMarketCap(data.MarketCapitalization);
+            companyNameValue.textContent = data.Name;
+            epsValue.textContent = data.EPS;
+            industryCyclicalityValue.textContent = data.industry_cyclicality_label;
+
+            const dividendYield = parseFloat(data.DividendYield);
             if (dividendYield === 0 || isNaN(dividendYield)) {
                 dividendScoreValue.textContent = 'No Dividend';
                 payoutRatioValue.textContent = 'N/A';
                 dividendYieldValue.textContent = 'N/A';
                 recessionPerformanceValue.textContent = 'N/A';
                 dividendLongevityValue.textContent = 'N/A';
-                industryCyclicalityValue.textContent = 'N/A';
+                ebitdaGrowthValue.textContent = 'N/A';
                 mainScoreCard.className = 'metric-card main-score-card';
             } else {
                 dividendYieldValue.textContent = `${(dividendYield * 100).toFixed(2)}%`;
-                
-                // Populate scores and labels
-                const scores = data.scores;
-                const labels = data.labels;
-
-                dividendScoreValue.textContent = Math.round(scores.dividend_score);
-                payoutRatioValue.textContent = `${(scores.payout_ratio * 100).toFixed(1)}%`;
-                recessionPerformanceValue.textContent = labels.recession_label;
-                dividendLongevityValue.textContent = `${labels.dividend_longevity_streak} years`;
-                industryCyclicalityValue.textContent = labels.industry_cyclicality_label;
-
-                // Apply color class based on dividend score
-                const score = Math.round(scores.dividend_score);
-                mainScoreCard.className = 'metric-card main-score-card';
-                if (score >= 78) {
-                    mainScoreCard.classList.add('extremely-safe');
-                } else if (score >= 60) {
-                    mainScoreCard.classList.add('safe');
-                } else if (score >= 36) {
-                    mainScoreCard.classList.add('unsafe');
-                } else {
-                    mainScoreCard.classList.add('extremely-unsafe');
-                }
+                fetchDividendScore(ticker);
             }
-
         } catch (error) {
-            console.error('Error fetching all data:', error);
-            // Set all fields to 'Error'
-            const fields = [dividendYieldValue, marketCapValue, companyNameValue, epsValue, dividendScoreValue, payoutRatioValue, recessionPerformanceValue, dividendLongevityValue, industryCyclicalityValue];
+            console.error('Error fetching stock data:', error);
+            const fields = [marketCapValue, companyNameValue, epsValue, industryCyclicalityValue, dividendYieldValue, dividendScoreValue, payoutRatioValue, recessionPerformanceValue, dividendLongevityValue, ebitdaGrowthValue];
             fields.forEach(field => field.textContent = 'Error');
         }
     }
 
-    // Function to format market cap
+    async function fetchDividendScore(ticker) {
+        try {
+            const response = await fetch(`/get_dividend_score`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `ticker=${ticker}`
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+
+            dividendScoreValue.textContent = Math.round(data.dividend_score);
+            payoutRatioValue.textContent = `${(data.payout_ratio * 100).toFixed(1)}%`;
+            recessionPerformanceValue.textContent = data.recession_label;
+            dividendLongevityValue.textContent = `${data.dividend_longevity_streak} years`;
+            ebitdaGrowthValue.textContent = `${(data.average_growth_rate * 100).toFixed(1)}%`;
+
+            const score = Math.round(data.dividend_score);
+            mainScoreCard.className = 'metric-card main-score-card'; // Reset class list
+            if (score >= 78) {
+                mainScoreCard.classList.add('extremely-safe-bg');
+            } else if (score >= 60) {
+                mainScoreCard.classList.add('safe-bg');
+            } else if (score >= 36) {
+                mainScoreCard.classList.add('unsafe-bg');
+            } else {
+                mainScoreCard.classList.add('extremely-unsafe-bg');
+            }
+        } catch (error) {
+            console.error('Error fetching dividend score:', error);
+            const fields = [dividendScoreValue, payoutRatioValue, recessionPerformanceValue, dividendLongevityValue, ebitdaGrowthValue];
+            fields.forEach(field => field.textContent = 'Error');
+        }
+    }
+
     function formatMarketCap(marketCap) {
         let value = parseFloat(marketCap);
+        if (isNaN(value)) return 'N/A';
         let suffix = '';
-
-        if (value >= 1000000000000) {
-            value /= 1000000000000;
+        if (value >= 1e12) {
+            value /= 1e12;
             suffix = 'T';
-        } else if (value >= 1000000000) {
-            value /= 1000000000;
+        } else if (value >= 1e9) {
+            value /= 1e9;
             suffix = 'B';
-        } else if (value >= 1000000) {
-            value /= 1000000;
+        } else if (value >= 1e6) {
+            value /= 1e6;
             suffix = 'M';
         }
-
         return `$${value.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}${suffix}`;
     }
 });
