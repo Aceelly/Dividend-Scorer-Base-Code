@@ -2,11 +2,13 @@
  This project represents a unique opportunity to address a specific need within the investment community, and we invite anyone with an interest in stock analysis, programming, or data visualization to join us in bringing this vision to life. Together, we can create a powerful tool that enhances the investment decision-making process. 
 
 TO RUN THE APP USING VS CODE
-1. Create a .env file and add your Alpha Vantage API key and a secret key:
+1. Open the .env file and add your Alpha Vantage API key and a secret key:
 ```env
 API_KEY=ALPHA_VANTAGE_API_KEY
 SECRET_KEY=GENERATED_SECRET_KEY
 ```
+Generate an Encryption Key Here (Not Sponsored):
+[Encryption Key Generator](https://generate-random.org/encryption-key-generator)
 
 2. Open the Terminal in VS Code and run:
 ```env
