@@ -173,22 +173,24 @@ def calculate_growth_score(income_statement_data):
     
     return score, average_growth
 
-def calculate_payout_score(payout_ratio):
-    score = payout_ratio / 100
-    if score < 0:
-        return 0
-    elif score >= 1:
-        return (-0.1 * score) + 20
+def calculate_payout_score(dividend_payout, net_income):
+    payout_ratio = dividend_payout / net_income if net_income != 0 else 0
+    payout_ratio_percentage = payout_ratio / 100
+    if payout_ratio_percentage < 0:
+        return 0, payout_ratio
+    elif payout_ratio_percentage >= 1:
+        return (-0.1 * payout_ratio_percentage) + 20, payout_ratio
     else:
-        return (-38 * payout_ratio) + 100
+        return (-38 * payout_ratio) + 100, payout_ratio
 
-def calculate_debt_score(debt_ratio):
+def calculate_debt_score(long_term_debt, total_shareholder_equity):
+    debt_ratio = long_term_debt / total_shareholder_equity if total_shareholder_equity != 0 else 0
     score = (debt_ratio * -26) + 100
     if score < 0:
-        return 0
+        score = 0
     elif score > 100:
-        return 100
-    return score
+        score = 100
+    return score, debt_ratio
 
 def calculate_free_cashflow_score(dividend_payout, operating_cashflow, capital_expenditures, net_debt_repayments):
     # Calculate LFCF (Levered Free Cash Flow)
@@ -214,15 +216,7 @@ def calculate_free_cashflow_score(dividend_payout, operating_cashflow, capital_e
             
     return free_cashflow_score, lfcf_ratio
 
-def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance, recession_score, dividend_longevity_score, industry_cyclicality_score, growth_score, free_cashflow_score):
-    # Calculate Payout Ratio and its corresponding score
-    payout_ratio = dividend_payout / net_income if net_income != 0 else 0
-    payout_score = calculate_payout_score(payout_ratio)
-
-    # Calculate debt ratio and its corresponding score
-    debt_ratio = long_term_debt / total_shareholder_equity if total_shareholder_equity != 0 else 0
-    debt_score = calculate_debt_score(debt_ratio)
-
+def calculate_dividend_score_metrics(payout_score, debt_score, recession_score, dividend_longevity_score, industry_cyclicality_score, growth_score, free_cashflow_score):
     weighted_dividend_score = (payout_score * 0.303) + (debt_score * 0.197) + (recession_score * 0.013) + (dividend_longevity_score * 0.026) + (industry_cyclicality_score * 0.039) + (free_cashflow_score * 0.289) + (growth_score * 0.133)
 
     print(f"Calculated Scores:")
@@ -235,25 +229,7 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
     print(f"  Weighted Dividend Score: {weighted_dividend_score:.2f}")
     print(f"  Free Cashflow Score: {free_cashflow_score}")
 
-    return {
-        'dividend_score': weighted_dividend_score, 
-        'payout_ratio': payout_ratio, 
-        'debt_ratio': debt_ratio, 
-        'operatingCashflow': operating_cashflow,
-        'capitalExpenditures': capital_expenditures,
-        'shortTermDebtRepayments': short_term_debt_repayments,
-        'longTermDebtIssuance': long_term_debt_issuance,
-        'netDebtRepayments': (short_term_debt_repayments or 0) + (long_term_debt_issuance or 0),
-        'lfcf': operating_cashflow - capital_expenditures - ((short_term_debt_repayments or 0) + (long_term_debt_issuance or 0)),
-        'lfcf_ratio': None, # This will be updated if calculated
-        'payout_score': payout_score,
-        'debt_score': debt_score,
-        'free_cashflow_score': free_cashflow_score,
-        'recession_score': recession_score,
-        'dividend_longevity_score': dividend_longevity_score,
-        'industry_cyclicality_score': industry_cyclicality_score,
-        'growth_score': growth_score
-    }
+    return weighted_dividend_score
 
 @app.route('/')
 @login_required
@@ -382,20 +358,25 @@ def get_dividend_score():
         long_term_debt_issuance = float(latest_cashflow.get('proceedsFromIssuanceOfLongTermDebtAndCapitalSecuritiesNet', '0').replace('None', '0'))
 
         net_debt_repayments = (short_term_debt_repayments or 0) + (long_term_debt_issuance or 0)
+        
+        payout_score, payout_ratio = calculate_payout_score(dividend_payout, net_income)
+        debt_score, debt_ratio = calculate_debt_score(long_term_debt, total_shareholder_equity)
         free_cashflow_score, lfcf_ratio = calculate_free_cashflow_score(dividend_payout, operating_cashflow, capital_expenditures, net_debt_repayments)
 
-        calculated_data = calculate_dividend_score_metrics(
-            dividend_payout, net_income, long_term_debt, total_shareholder_equity,
-            operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance,
-            recession_score, dividend_longevity_score, industry_cyclicality_score, growth_score, free_cashflow_score
+        weighted_dividend_score = calculate_dividend_score_metrics(
+            payout_score, debt_score, recession_score, dividend_longevity_score, 
+            industry_cyclicality_score, growth_score, free_cashflow_score
         )
         
-        calculated_data['recession_label'] = recession_label
-        calculated_data['dividend_longevity_streak'] = dividend_longevity_streak
-        calculated_data['average_growth_rate'] = average_growth_rate
-        calculated_data['lfcf_ratio'] = lfcf_ratio
-
-        return jsonify(calculated_data)
+        return jsonify({
+            'dividend_score': weighted_dividend_score,
+            'payout_ratio': payout_ratio,
+            'debt_ratio': debt_ratio,
+            'recession_label': recession_label,
+            'dividend_longevity_streak': dividend_longevity_streak,
+            'average_growth_rate': average_growth_rate,
+            'lfcf_ratio': lfcf_ratio
+        })
 
     except Exception as e:
         print(f"An unexpected error occurred in get_dividend_score: {e}")
