@@ -60,8 +60,8 @@ def load_user(user_id):
     return User.get(user_id)
 
 def get_industry_cyclicality_score(sector):
-    non_cyclical_sectors = ["Consumer Defensive", "Healthcare", "Utilities", "Consumer Staples", "Trade & Services","Life Sciences"]
-    cyclical_sectors = ["Manufacturing", "Consumer Cyclical", "Industrials", "Energy", "Materials", "Real Estate", "Financial Services", "Technology","Communication Services"]
+    non_cyclical_sectors = ["Consumer Defensive", "Healthcare", "Utilities","Energy", "Consumer Staples", "Trade & Services","Life Sciences"]
+    cyclical_sectors = ["Manufacturing", "Consumer Cyclical", "Industrials", "Materials", "Real Estate", "Financial Services", "Technology","Communication Services"]
 
     if sector in non_cyclical_sectors:
         return "Not Cyclical", 85
@@ -190,7 +190,31 @@ def calculate_debt_score(debt_ratio):
         return 100
     return score
 
-def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance, recession_score, dividend_longevity_score, industry_cyclicality_score, growth_score):
+def calculate_free_cashflow_score(dividend_payout, operating_cashflow, capital_expenditures, net_debt_repayments):
+    # Calculate LFCF (Levered Free Cash Flow)
+    lfcf = operating_cashflow - capital_expenditures - net_debt_repayments
+
+    lfcf_ratio = None  # Define upfront to avoid local variable error
+
+    # Handle zero or negative LFCF to avoid invalid calculations
+    if lfcf <= 0:
+        free_cashflow_score = 0
+    else:
+        # Calculate LFCF Ratio
+        lfcf_ratio = dividend_payout / lfcf
+
+        # Calculate Free Cash Flow Score
+        free_cashflow_score = -50 * lfcf_ratio + 100
+
+        # Clamp score between 0 and 100
+        if free_cashflow_score < 0:
+            free_cashflow_score = 0
+        elif free_cashflow_score > 100:
+            free_cashflow_score = 100
+            
+    return free_cashflow_score, lfcf_ratio
+
+def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt, total_shareholder_equity, operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance, recession_score, dividend_longevity_score, industry_cyclicality_score, growth_score, free_cashflow_score):
     # Calculate Payout Ratio and its corresponding score
     payout_ratio = dividend_payout / net_income if net_income != 0 else 0
     payout_score = calculate_payout_score(payout_ratio)
@@ -198,18 +222,6 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
     # Calculate debt ratio and its corresponding score
     debt_ratio = long_term_debt / total_shareholder_equity if total_shareholder_equity != 0 else 0
     debt_score = calculate_debt_score(debt_ratio)
-
-    # Calculate Net Debt Repayments
-    net_debt_repayments = (short_term_debt_repayments or 0) + (long_term_debt_issuance or 0)
-
-    # Calculate LFCF (Levered Free Cash Flow)
-    lfcf = operating_cashflow - capital_expenditures - net_debt_repayments
-
-    # Calculate LFCF Ratio and Free Cash Flow Score
-    lfcf_ratio = dividend_payout / lfcf if lfcf != 0 else 'N/A'
-    free_cashflow_score = -50 * (lfcf_ratio if isinstance(lfcf_ratio, (int, float)) else 0) + 100
-    if free_cashflow_score < 0:
-        free_cashflow_score = 0
 
     weighted_dividend_score = (payout_score * 0.303) + (debt_score * 0.197) + (recession_score * 0.013) + (dividend_longevity_score * 0.026) + (industry_cyclicality_score * 0.039) + (free_cashflow_score * 0.289) + (growth_score * 0.133)
 
@@ -231,9 +243,9 @@ def calculate_dividend_score_metrics(dividend_payout, net_income, long_term_debt
         'capitalExpenditures': capital_expenditures,
         'shortTermDebtRepayments': short_term_debt_repayments,
         'longTermDebtIssuance': long_term_debt_issuance,
-        'netDebtRepayments': net_debt_repayments,
-        'lfcf': lfcf,
-        'lfcf_ratio': lfcf_ratio,
+        'netDebtRepayments': (short_term_debt_repayments or 0) + (long_term_debt_issuance or 0),
+        'lfcf': operating_cashflow - capital_expenditures - ((short_term_debt_repayments or 0) + (long_term_debt_issuance or 0)),
+        'lfcf_ratio': None, # This will be updated if calculated
         'payout_score': payout_score,
         'debt_score': debt_score,
         'free_cashflow_score': free_cashflow_score,
@@ -369,15 +381,19 @@ def get_dividend_score():
         short_term_debt_repayments = float(latest_cashflow.get('proceedsFromRepaymentsOfShortTermDebt', '0').replace('None', '0'))
         long_term_debt_issuance = float(latest_cashflow.get('proceedsFromIssuanceOfLongTermDebtAndCapitalSecuritiesNet', '0').replace('None', '0'))
 
+        net_debt_repayments = (short_term_debt_repayments or 0) + (long_term_debt_issuance or 0)
+        free_cashflow_score, lfcf_ratio = calculate_free_cashflow_score(dividend_payout, operating_cashflow, capital_expenditures, net_debt_repayments)
+
         calculated_data = calculate_dividend_score_metrics(
             dividend_payout, net_income, long_term_debt, total_shareholder_equity,
             operating_cashflow, capital_expenditures, short_term_debt_repayments, long_term_debt_issuance,
-            recession_score, dividend_longevity_score, industry_cyclicality_score, growth_score
+            recession_score, dividend_longevity_score, industry_cyclicality_score, growth_score, free_cashflow_score
         )
         
         calculated_data['recession_label'] = recession_label
         calculated_data['dividend_longevity_streak'] = dividend_longevity_streak
         calculated_data['average_growth_rate'] = average_growth_rate
+        calculated_data['lfcf_ratio'] = lfcf_ratio
 
         return jsonify(calculated_data)
 
