@@ -73,3 +73,6 @@ Companies with no dividend will display "No Dividend on the Dashboard".
 Added a industry cyclicality score.
 Added a divdend longevity score.
 
+🗓️ 8/11/2025 – 4:05 PM
+Free Cashflow Score now handles negative Values
+Moved Free Cashflow into own function
