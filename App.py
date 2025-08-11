@@ -147,7 +147,6 @@ def calculate_growth_score(income_statement_data):
             if prev_ebitda > 0:
                 growth = (curr_ebitda - prev_ebitda) / prev_ebitda
                 growth_rates.append(growth)
-                print(f"    Growth: {growth:.2%}")
         except (ValueError, TypeError):
             continue  # Skip invalid EBITDA data
 
@@ -155,7 +154,6 @@ def calculate_growth_score(income_statement_data):
         return 0, 0
 
     average_growth = sum(growth_rates) / len(growth_rates)
-    print(f"  Average YoY EBITDA Growth: {average_growth:.2%}")
     
     # If average YoY growth is negative, return score of 0
     if average_growth < 0:
@@ -175,13 +173,19 @@ def calculate_growth_score(income_statement_data):
 
 def calculate_payout_score(dividend_payout, net_income):
     payout_ratio = dividend_payout / net_income if net_income != 0 else 0
-    payout_ratio_percentage = payout_ratio / 100
-    if payout_ratio_percentage < 0:
-        return 0, payout_ratio
-    elif payout_ratio_percentage >= 1:
-        return (-0.1 * payout_ratio_percentage) + 20, payout_ratio
-    else:
-        return (-38 * payout_ratio) + 100, payout_ratio
+    
+    if payout_ratio < 0:
+        score = 0
+    elif payout_ratio >= 1:  # 100% or more payout ratio
+        score = (-2 * (payout_ratio ** 8)) + 22
+    else:  # payout_ratio < 1
+        score = (-53 * (payout_ratio ** 2)) + 100
+    
+    # Clamp score between 0 and 100
+    score = max(0, min(score, 100))
+    
+    return score, payout_ratio
+
 
 def calculate_debt_score(long_term_debt, total_shareholder_equity):
     debt_ratio = long_term_debt / total_shareholder_equity if total_shareholder_equity != 0 else 0
@@ -190,6 +194,8 @@ def calculate_debt_score(long_term_debt, total_shareholder_equity):
         score = 0
     elif score > 100:
         score = 100
+
+    print(f"Debt Ratio: {debt_ratio:.2f}, Score: {score:.2f}")    
     return score, debt_ratio
 
 def calculate_free_cashflow_score(dividend_payout, operating_cashflow, capital_expenditures, net_debt_repayments):
@@ -206,14 +212,15 @@ def calculate_free_cashflow_score(dividend_payout, operating_cashflow, capital_e
         lfcf_ratio = dividend_payout / lfcf
 
         # Calculate Free Cash Flow Score
-        free_cashflow_score = -50 * lfcf_ratio + 100
+        # free_cashflow_score = -50 * lfcf_ratio + 100
+        free_cashflow_score = (-81 * lfcf_ratio * lfcf_ratio) - 5 * lfcf_ratio + 100
 
         # Clamp score between 0 and 100
         if free_cashflow_score < 0:
             free_cashflow_score = 0
         elif free_cashflow_score > 100:
             free_cashflow_score = 100
-            
+        
     return free_cashflow_score, lfcf_ratio
 
 def calculate_dividend_score_metrics(payout_score, debt_score, recession_score, dividend_longevity_score, industry_cyclicality_score, growth_score, free_cashflow_score):
@@ -351,6 +358,8 @@ def get_dividend_score():
         latest_balancesheet = data_bs['annualReports'][0]
         long_term_debt = float(latest_balancesheet.get('longTermDebt', '0').replace('None', '0'))
         total_shareholder_equity = float(latest_balancesheet.get('totalShareholderEquity', '0').replace('None', '0'))
+
+        print(f"Long Term Debt: {long_term_debt}, Total Shareholder Equity: {total_shareholder_equity}")
 
         operating_cashflow = float(latest_cashflow.get('operatingCashflow', '0').replace('None', '0'))
         capital_expenditures = float(latest_cashflow.get('capitalExpenditures', '0').replace('None', '0'))
