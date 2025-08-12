@@ -73,6 +73,14 @@ Companies with no dividend will display "No Dividend on the Dashboard".
 Added a industry cyclicality score.
 Added a divdend longevity score.
 
-🗓️ 8/11/2025 – 4:05 PM
+🗓️ 8/11/2025
 Free Cashflow Score now handles negative Values
 Moved Free Cashflow into own function
+Refinded and Added Accurate formulas 
+
+## TO-DO
+- **Add Current Ratio Formula**: Calculate current ratio using financial data.
+- **Add ROI Formula**: Implement Return on Investment calculation.
+- **Add Logo**: Include a project logo for branding.
+- **Add Feedback Feature**: Add mechanism for user feedback and suggestions.
+
