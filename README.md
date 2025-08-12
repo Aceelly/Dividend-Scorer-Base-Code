@@ -83,4 +83,6 @@ Refinded and Added Accurate formulas
 - **Add ROI Formula**: Implement Return on Investment calculation.
 - **Add Logo**: Include a project logo for branding.
 - **Add Feedback Feature**: Add mechanism for user feedback and suggestions.
+- **Consolidate the CashFlow API call for the Cashflow chart**
+- **Research and Connect Firebase Authorization**
 
