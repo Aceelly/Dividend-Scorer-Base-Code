@@ -7,6 +7,38 @@ body {
     color: #343a40;
 }
 
+/* New Styles from Inline CSS */
+.gradient-bg {
+    background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+}
+.score-indicator {
+    position: relative;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.score-indicator::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: var(--score-width, 0%);
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    transition: width 0.5s ease;
+}
+.safety-level {
+    transition: all 0.3s ease;
+}
+.safety-level:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.search-bar:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.5);
+}
+
 /* Auth Page Body Style */
 body.auth-body {
     display: flex;
@@ -264,7 +296,7 @@ body.auth-body {
 
 /* Background colors for main score card */
 .extremely-safe-bg { background-color: #4caf50 !important; color: white !important; }
-.safe-bg { background-color: #8bc34a !important; color: white !important; }
+.safe-bg { background-color: #8bc3a4 !important; color: white !important; }
 .unsafe-bg { background-color: #ffc107 !important; color: black !important; }
 .extremely-unsafe-bg { background-color: #f44336 !important; color: white !important; }
 

@@ -4,101 +4,172 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dividend Scorer Dashboard</title>
-    <!-- Link to external CSS file -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <!-- Include Chart.js library for visualizations -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body>
-    <!-- Main Content Section -->
-    <div id="main-content" class="container">
-        <div class="header">
-            <h1>Dividend Scorer</h1>
-            <!-- Logout button -->
-            <a href="{{ url_for('logout') }}" class="logout-btn">Log Out</a>
+<body class="gradient-bg min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <!-- Header Section -->
+        <div class="flex justify-between items-center mb-8">
+            <div class="flex items-center">
+                <i class="fas fa-chart-line text-emerald-600 text-3xl mr-3"></i>
+                <h1 class="text-2xl font-bold text-gray-800">Dividend Scorer</h1>
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-btn bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+                <i class="fas fa-sign-out-alt mr-2"></i> Log Out
+            </a>
         </div>
-        <div class="main-content">
-            <!-- Greeting header with a search bar for stock ticker -->
-            <div class="header">
-                <h1 id="user-greeting">Hello {{ current_user.username }},</h1> 
-                <input type="text" class="search-bar" id="stock-ticker-input" placeholder="Enter Stock Ticker">
-            </div>
 
-            <!-- Metric Cards Section -->
-            <div class="dashboard-grid">
-                <!-- Main Score Card -->
-                <div class="metric-card main-score-card">
-                    <h3>Dividend Score</h3>
-                    <h2 id="dividend-score-value">N/A</h2> 
-                </div>
-
-                <!-- Safety Chart -->
-                <div class="metric-card safety-chart-card">
-                    <table class="safety-chart">
-                        <thead>
-                            <tr>
-                                <th>Safety Level</th>
-                                <th>Score Range</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="extremely-safe"><td>Extremely Safe</td><td>78-100</td></tr>
-                            <tr class="safe"><td>Safe</td><td>60-77</td></tr>
-                            <tr class="unsafe"><td>Unsafe</td><td>36-59</td></tr>
-                            <tr class="extremely-unsafe"><td>Extremely Unsafe</td><td>1-35</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Company Info Cards -->
-                <div class="metric-card">
-                    <h3>Company Name</h3> 
-                    <h2 id="company-name-value">N/A</h2> 
-                </div>
-                <div class="metric-card">
-                    <h3>Market Cap</h3>
-                    <h2 id="market-cap-value">N/A</h2> 
-                </div>
-                <div class="metric-card">
-                    <h3>EPS</h3> 
-                    <h2 id="eps-value">N/A</h2> 
-                </div>
-
-                <!-- Dividend Info Cards -->
-                <div class="metric-card">
-                    <h3>Payout Ratio</h3>
-                    <h2 id="payout-ratio-value">N/A</h2>
-                </div>
-                <div class="metric-card">
-                    <h3>Dividend Yield</h3>
-                    <h2 id="dividend-yield-value">N/A</h2>
-                </div>
-                <div class="metric-card">
-                    <h3>Recession Performance</h3>
-                    <h2 id="recession-performance-value">N/A</h2>
-                </div>
-                <div class="metric-card">
-                    <h3>Dividend Longevity</h3>
-                    <h2 id="dividend-longevity-value">N/A</h2>
-                </div>
-                <div class="metric-card">
-                    <h3>Industry Cyclicality</h3>
-                    <h2 id="industry-cyclicality-value">N/A</h2>
-                </div>
-                <div class="metric-card">
-                    <h3>Avg. YoY EBITDA Growth</h3>
-                    <h2 id="ebitda-growth-value">N/A</h2>
-                </div>
-                
-                <!-- Cashflow Chart -->
-                <div class="metric-card cashflow-chart-card">
-                    <h2>Yearly Cashflow Analysis</h2>
-                    <canvas id="cashflowChart"></canvas>
+        <!-- Greeting and Search Section -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4 md:mb-0">
+                    <span id="user-greeting" class="text-emerald-600">Hello {{ current_user.username }},</span>
+                </h2>
+                <div class="relative w-full md:w-64">
+                    <input type="text" 
+                           id="stock-ticker-input" 
+                           placeholder="Search stock ticker..."
+                           class="search-bar w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:border-emerald-500 transition-colors">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                 </div>
             </div>
+        </div>
+
+        <!-- Main Score Card -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="main-score-card bg-white rounded-xl shadow-sm p-6 col-span-1 lg:col-span-2">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-500 mb-1">Dividend Score</h3>
+                        <h2 id="dividend-score-value" class="text-5xl font-bold text-emerald-600 mb-2">N/A</h2>
+                        <div class="score-indicator mb-4" style="--score-width: 0%"></div>
+                        <p class="text-gray-500 text-sm">A comprehensive assessment of dividend safety and quality</p>
+                    </div>
+                    <div id="safety-label" class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
+                        N/A
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Chart -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-medium text-gray-500 mb-4">Safety Levels</h3>
+                <div class="space-y-3">
+                    <div class="safety-level bg-emerald-50 p-3 rounded-lg border-l-4 border-emerald-500">
+                        <div class="flex justify-between">
+                            <span class="font-medium text-gray-700">Extremely Safe</span>
+                            <span class="text-gray-500">78-100</span>
+                        </div>
+                    </div>
+                    <div class="safety-level bg-green-50 p-3 rounded-lg border-l-4 border-green-400">
+                        <div class="flex justify-between">
+                            <span class="font-medium text-gray-700">Safe</span>
+                            <span class="text-gray-500">60-77</span>
+                        </div>
+                    </div>
+                    <div class="safety-level bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400">
+                        <div class="flex justify-between">
+                            <span class="font-medium text-gray-700">Unsafe</span>
+                            <span class="text-gray-500">36-59</span>
+                        </div>
+                    </div>
+                    <div class="safety-level bg-red-50 p-3 rounded-lg border-l-4 border-red-400">
+                        <div class="flex justify-between">
+                            <span class="font-medium text-gray-700">Extremely Unsafe</span>
+                            <span class="text-gray-500">1-35</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Company Info Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-building text-emerald-500 mr-2"></i>
+                    <h3 class="text-lg font-medium text-gray-500">Company Name</h3>
+                </div>
+                <h2 id="company-name-value" class="text-2xl font-bold text-gray-800">N/A</h2>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-chart-pie text-emerald-500 mr-2"></i>
+                    <h3 class="text-lg font-medium text-gray-500">Market Cap</h3>
+                </div>
+                <h2 id="market-cap-value" class="text-2xl font-bold text-gray-800">N/A</h2>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-coins text-emerald-500 mr-2"></i>
+                    <h3 class="text-lg font-medium text-gray-500">EPS</h3>
+                </div>
+                <h2 id="eps-value" class="text-2xl font-bold text-gray-800">N/A</h2>
+            </div>
+        </div>
+
+        <!-- Dividend Info Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-percentage text-emerald-500 mr-2"></i>
+                    <h3 class="text-lg font-medium text-gray-500">Payout Ratio</h3>
+                </div>
+                <h2 id="payout-ratio-value" class="text-2xl font-bold text-gray-800">N/A</h2>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-hand-holding-usd text-emerald-500 mr-2"></i>
+                    <h3 class="text-lg font-medium text-gray-500">Dividend Yield</h3>
+                </div>
+                <h2 id="dividend-yield-value" class="text-2xl font-bold text-gray-800">N/A</h2>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-umbrella text-emerald-500 mr-2"></i>
+                    <h3 class="text-lg font-medium text-gray-500">Recession Performance</h3>
+                </div>
+                <h2 id="recession-performance-value" class="text-2xl font-bold text-gray-800">N/A</h2>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-history text-emerald-500 mr-2"></i>
+                    <h3 class="text-lg font-medium text-gray-500">Dividend Longevity</h3>
+                </div>
+                <h2 id="dividend-longevity-value" class="text-2xl font-bold text-gray-800">N/A</h2>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-sync-alt text-emerald-500 mr-2"></i>
+                    <h3 class="text-lg font-medium text-gray-500">Industry Cyclicality</h3>
+                </div>
+                <h2 id="industry-cyclicality-value" class="text-2xl font-bold text-gray-800">N/A</h2>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-chart-line text-emerald-500 mr-2"></i>
+                    <h3 class="text-lg font-medium text-gray-500">Avg. YoY EBITDA Growth</h3>
+                </div>
+                <h2 id="ebitda-growth-value" class="text-2xl font-bold text-gray-800">N/A</h2>
+            </div>
+        </div>
+        
+        <!-- Cashflow Chart -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mt-8">
+            <canvas id="cashflowChart"></canvas>
         </div>
     </div>
-    
+
     <!-- JavaScript files for handling functionality and interactivity -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="{{ url_for('static', filename='auth.js') }}"></script> 
