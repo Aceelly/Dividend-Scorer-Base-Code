@@ -80,11 +80,12 @@ Refinded and Added Accurate formulas
 
 🗓️ 8/15/2025
 New Dashboard look
+Removed Undeeded CSS
 
 ## TO-DO
 - **Add Current Ratio Formula**: Calculate current ratio using financial data.
 - **Add ROI Formula**: Implement Return on Investment calculation.
-- **Edit Logo**: Make Logo Bigger and Dynamic
+- **Center Main Score Card**
 - **Add Feedback Feature**: Add mechanism for user feedback and suggestions.
 - **Consolidate the CashFlow API call for the Cashflow chart**
 - **Research and Connect Firebase Authorization**
