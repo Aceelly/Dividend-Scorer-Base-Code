@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const industryCyclicalityValue = document.getElementById('industry-cyclicality-value');
     const ebitdaGrowthValue = document.getElementById('ebitda-growth-value');
     const mainScoreCard = document.querySelector('.main-score-card');
+    const safetyLabel = document.getElementById('safety-label');
+    const scoreIndicator = document.querySelector('.score-indicator');
 
     // Debounce function to limit API calls
     function debounce(func, wait) {
@@ -38,9 +40,10 @@ document.addEventListener('DOMContentLoaded', function() {
             dividendLongevityValue.textContent = 'N/A';
             industryCyclicalityValue.textContent = 'N/A';
             ebitdaGrowthValue.textContent = 'N/A';
-            mainScoreCard.className = 'metric-card main-score-card';
+            safetyLabel.textContent = 'N/A';
+            scoreIndicator.style.setProperty('--score-width', '0%');
         }
-    }, 600));
+    }, 700));
 
     async function fetchStockData(ticker) {
         try {
@@ -68,14 +71,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 recessionPerformanceValue.textContent = 'N/A';
                 dividendLongevityValue.textContent = 'N/A';
                 ebitdaGrowthValue.textContent = 'N/A';
-                mainScoreCard.className = 'metric-card main-score-card';
+                safetyLabel.textContent = 'N/A';
+                scoreIndicator.style.setProperty('--score-width', '0%');
             } else {
-                dividendYieldValue.textContent = `${(dividendYield * 100).toFixed(2)}%`;
+                dividendYieldValue.textContent = `${(dividendYield * 100).toFixed(2)}%`; 
                 fetchDividendScore(ticker);
             }
         } catch (error) {
             console.error('Error fetching stock data:', error);
-            const fields = [marketCapValue, companyNameValue, epsValue, industryCyclicalityValue, dividendYieldValue, dividendScoreValue, payoutRatioValue, recessionPerformanceValue, dividendLongevityValue, ebitdaGrowthValue];
+            const fields = [marketCapValue, companyNameValue, epsValue, industryCyclicalityValue, dividendYieldValue, dividendScoreValue, payoutRatioValue, recessionPerformanceValue, dividendLongevityValue, ebitdaGrowthValue, safetyLabel];
             fields.forEach(field => field.textContent = 'Error');
         }
     }
@@ -93,26 +97,31 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             if (data.error) throw new Error(data.error);
 
-            dividendScoreValue.textContent = Math.round(data.dividend_score);
+            const score = Math.round(data.dividend_score);
+            dividendScoreValue.textContent = score;
             payoutRatioValue.textContent = `${(data.payout_ratio * 100).toFixed(1)}%`;
             recessionPerformanceValue.textContent = data.recession_label;
             dividendLongevityValue.textContent = `${data.dividend_longevity_streak} years`;
             ebitdaGrowthValue.textContent = `${(data.average_growth_rate * 100).toFixed(1)}%`;
+            
+            scoreIndicator.style.setProperty('--score-width', `${score}%`);
 
-            const score = Math.round(data.dividend_score);
-            mainScoreCard.className = 'metric-card main-score-card'; // Reset class list
             if (score >= 78) {
-                mainScoreCard.classList.add('extremely-safe-bg');
+                safetyLabel.textContent = 'Extremely Safe';
+                safetyLabel.className = 'bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full text-sm font-medium shadow-inner';
             } else if (score >= 60) {
-                mainScoreCard.classList.add('safe-bg');
+                safetyLabel.textContent = 'Safe';
+                safetyLabel.className = 'bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium shadow-inner';
             } else if (score >= 36) {
-                mainScoreCard.classList.add('unsafe-bg');
+                safetyLabel.textContent = 'Unsafe';
+                safetyLabel.className = 'bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm font-medium shadow-inner';
             } else {
-                mainScoreCard.classList.add('extremely-unsafe-bg');
+                safetyLabel.textContent = 'Extremely Unsafe';
+                safetyLabel.className = 'bg-red-100 text-red-800 px-4 py-2 rounded-full text-sm font-medium shadow-inner';
             }
         } catch (error) {
             console.error('Error fetching dividend score:', error);
-            const fields = [dividendScoreValue, payoutRatioValue, recessionPerformanceValue, dividendLongevityValue, ebitdaGrowthValue];
+            const fields = [dividendScoreValue, payoutRatioValue, recessionPerformanceValue, dividendLongevityValue, ebitdaGrowthValue, safetyLabel];
             fields.forEach(field => field.textContent = 'Error');
         }
     }

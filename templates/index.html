@@ -14,8 +14,7 @@
         <!-- Header Section -->
         <div class="flex justify-between items-center mb-8">
             <div class="flex items-center">
-                <i class="fas fa-chart-line text-emerald-600 text-3xl mr-3"></i>
-                <h1 class="text-2xl font-bold text-gray-800">Dividend Scorer</h1>
+                <img src="{{ url_for('static', filename='DividendScoreLogo.png') }}" alt="Dividend Scorer Logo" class="h-12">
             </div>
             <a href="{{ url_for('logout') }}" class="logout-btn bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
                 <i class="fas fa-sign-out-alt mr-2"></i> Log Out
@@ -40,46 +39,58 @@
 
         <!-- Main Score Card -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <div class="main-score-card bg-white rounded-xl shadow-sm p-6 col-span-1 lg:col-span-2">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-500 mb-1">Dividend Score</h3>
-                        <h2 id="dividend-score-value" class="text-5xl font-bold text-emerald-600 mb-2">N/A</h2>
-                        <div class="score-indicator mb-4" style="--score-width: 0%"></div>
-                        <p class="text-gray-500 text-sm">A comprehensive assessment of dividend safety and quality</p>
-                    </div>
-                    <div id="safety-label" class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
-                        N/A
+            <div class="main-score-card bg-white rounded-xl shadow-md p-8 col-span-1 lg:col-span-2 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-full"></div>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-500 mb-1">Dividend Safety Score</h3>
+                            <div class="flex items-end gap-2">
+                                <h2 id="dividend-score-value" class="text-6xl font-bold text-emerald-600 mb-2">N/A</h2>
+                                <span class="text-xl font-medium text-gray-400">/100</span>
+                            </div>
+                            <div class="score-indicator mb-6 h-3 rounded-full" style="--score-width: 0%"></div>
+                            <div class="flex items-center gap-2 text-gray-500">
+                                <i class="fas fa-info-circle"></i>
+                                <p class="text-sm">Comprehensive assessment of dividend safety, growth and sustainability</p>
+                            </div>
+                        </div>
+                        <div id="safety-label" class="bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full text-sm font-medium shadow-inner">
+                            <i class="fas fa-spinner fa-spin mr-2"></i> Loading...
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Safety Chart -->
-            <div class="bg-white rounded-xl shadow-sm p-6">
-                <h3 class="text-lg font-medium text-gray-500 mb-4">Safety Levels</h3>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-500">Safety Levels</h3>
+                    <i class="fas fa-shield-alt text-emerald-400"></i>
+                </div>
                 <div class="space-y-3">
-                    <div class="safety-level bg-emerald-50 p-3 rounded-lg border-l-4 border-emerald-500">
-                        <div class="flex justify-between">
+                    <div class="safety-level bg-gradient-to-r from-emerald-50 to-white p-4 rounded-lg border-l-4 border-emerald-500">
+                        <div class="flex justify-between items-center">
                             <span class="font-medium text-gray-700">Extremely Safe</span>
-                            <span class="text-gray-500">78-100</span>
+                            <span class="text-emerald-600 font-bold">78-100</span>
                         </div>
                     </div>
-                    <div class="safety-level bg-green-50 p-3 rounded-lg border-l-4 border-green-400">
-                        <div class="flex justify-between">
+                    <div class="safety-level bg-gradient-to-r from-green-50 to-white p-4 rounded-lg border-l-4 border-green-400">
+                        <div class="flex justify-between items-center">
                             <span class="font-medium text-gray-700">Safe</span>
-                            <span class="text-gray-500">60-77</span>
+                            <span class="text-green-600 font-bold">60-77</span>
                         </div>
                     </div>
-                    <div class="safety-level bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400">
-                        <div class="flex justify-between">
+                    <div class="safety-level bg-gradient-to-r from-yellow-50 to-white p-4 rounded-lg border-l-4 border-yellow-400">
+                        <div class="flex justify-between items-center">
                             <span class="font-medium text-gray-700">Unsafe</span>
-                            <span class="text-gray-500">36-59</span>
+                            <span class="text-yellow-600 font-bold">36-59</span>
                         </div>
                     </div>
-                    <div class="safety-level bg-red-50 p-3 rounded-lg border-l-4 border-red-400">
-                        <div class="flex justify-between">
+                    <div class="safety-level bg-gradient-to-r from-red-50 to-white p-4 rounded-lg border-l-4 border-red-400">
+                        <div class="flex justify-between items-center">
                             <span class="font-medium text-gray-700">Extremely Unsafe</span>
-                            <span class="text-gray-500">1-35</span>
+                            <span class="text-red-600 font-bold">1-35</span>
                         </div>
                     </div>
                 </div>
