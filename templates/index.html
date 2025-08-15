@@ -14,7 +14,7 @@
         <!-- Header Section -->
         <div class="flex justify-between items-center mb-8">
             <div class="flex items-center">
-                <img src="{{ url_for('static', filename='DividendScoreLogo.png') }}" alt="Dividend Scorer Logo" class="h-12">
+                <img src="{{ url_for('static', filename='DividendScoreLogo.png') }}" alt="Dividend Scorer Logo" class="h-12 sm:h-16 md:h-20 lg:h-12 w-auto">
             </div>
             <a href="{{ url_for('logout') }}" class="logout-btn bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
                 <i class="fas fa-sign-out-alt mr-2"></i> Log Out
@@ -52,7 +52,7 @@
                             <div class="score-indicator mb-6 h-3 rounded-full" style="--score-width: 0%"></div>
                             <div class="flex items-center gap-2 text-gray-500">
                                 <i class="fas fa-info-circle"></i>
-                                <p class="text-sm">Comprehensive assessment of dividend safety, growth and sustainability</p>
+                                <p class="text-sm">Comprehensive evaluation of the dividend's safety, growth potential, and long-term sustainability.</p>
                             </div>
                         </div>
                         <div id="safety-label" class="bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full text-sm font-medium shadow-inner">
@@ -122,10 +122,10 @@
                 </div>
                 <h2 id="eps-value" class="text-2xl font-bold text-gray-800">N/A</h2>
             </div>
-        </div>
+        
 
         <!-- Dividend Info Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
             <div class="bg-white rounded-xl shadow-sm p-6">
                 <div class="flex items-center mb-3">
                     <i class="fas fa-percentage text-emerald-500 mr-2"></i>
