@@ -84,7 +84,7 @@ New Dashboard look
 ## TO-DO
 - **Add Current Ratio Formula**: Calculate current ratio using financial data.
 - **Add ROI Formula**: Implement Return on Investment calculation.
-- **Add Logo**: Include a project logo for branding.
+- **Edit Logo**: Make Logo Bigger and Dynamic
 - **Add Feedback Feature**: Add mechanism for user feedback and suggestions.
 - **Consolidate the CashFlow API call for the Cashflow chart**
 - **Research and Connect Firebase Authorization**
