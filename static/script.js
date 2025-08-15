@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const mainScoreCard = document.querySelector('.main-score-card');
     const safetyLabel = document.getElementById('safety-label');
     const scoreIndicator = document.querySelector('.score-indicator');
+    const payoutRatioBar = document.getElementById('payout-ratio-bar');
 
     // Debounce function to limit API calls
     function debounce(func, wait) {
@@ -42,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ebitdaGrowthValue.textContent = 'N/A';
             safetyLabel.textContent = 'N/A';
             scoreIndicator.style.setProperty('--score-width', '0%');
+            payoutRatioBar.style.width = '0%';
         }
     }, 700));
 
@@ -73,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 ebitdaGrowthValue.textContent = 'N/A';
                 safetyLabel.textContent = 'N/A';
                 scoreIndicator.style.setProperty('--score-width', '0%');
+                payoutRatioBar.style.width = '0%';
             } else {
                 dividendYieldValue.textContent = `${(dividendYield * 100).toFixed(2)}%`; 
                 fetchDividendScore(ticker);
@@ -99,7 +102,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const score = Math.round(data.dividend_score);
             dividendScoreValue.textContent = score;
-            payoutRatioValue.textContent = `${(data.payout_ratio * 100).toFixed(1)}%`;
+            
+            const payoutRatio = data.payout_ratio * 100;
+            payoutRatioValue.textContent = `${payoutRatio.toFixed(1)}%`;
+            payoutRatioBar.style.width = `${Math.min(payoutRatio, 100)}%`;
+
             recessionPerformanceValue.textContent = data.recession_label;
             dividendLongevityValue.textContent = `${data.dividend_longevity_streak} years`;
             ebitdaGrowthValue.textContent = `${(data.average_growth_rate * 100).toFixed(1)}%`;
