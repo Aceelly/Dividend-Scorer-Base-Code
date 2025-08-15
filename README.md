@@ -78,6 +78,9 @@ Free Cashflow Score now handles negative Values
 Moved Free Cashflow into own function
 Refinded and Added Accurate formulas 
 
+🗓️ 8/15/2025
+New Dashboard look
+
 ## TO-DO
 - **Add Current Ratio Formula**: Calculate current ratio using financial data.
 - **Add ROI Formula**: Implement Return on Investment calculation.
