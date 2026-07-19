@@ -6,5 +6,9 @@
     "dave": {
         "id": 2,
         "password_hash": "scrypt:32768:8:1$ZYqPZ7tYo8KdJItK$6d0216bf3d0a445fb413938dcd733d09ade0d1954b32bd99a367709ff5ff5ecbb14d9c3e2ca15fc9ce24cebfd2195cd798116e3488528f54c6c0f4b7fb1970d3"
+    },
+    "LeonaR": {
+        "id": 3,
+        "password_hash": "scrypt:32768:8:1$hhQ7WFIoLyWhstHc$3e466d9c6b4dfb8cfcc12b6f4c713f6c936c45c40835facb5f057f7b27050f4e125a103c677cdf3327eab8053d0a8d61d8ed22cc07d774dc16160087ed258685"
     }
 }
