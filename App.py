@@ -416,11 +416,25 @@ def get_cashflow_data(symbol):
     api_key = os.getenv('API_KEY')
     if not api_key:
         return jsonify({'error': 'API key is missing'}), 500
+    
     url = f'https://www.alphavantage.co/query?function=CASH_FLOW&symbol={symbol}&apikey={api_key}'
-    response = requests.get(url)
-    data = response.json()
-
-    if 'annualReports' not in data:
+    
+    # Add retry logic for rate limiting
+    max_retries = 3
+    data = None
+    for attempt in range(max_retries):
+        response = requests.get(url)
+        data = response.json()
+        
+        if "Information" in data or "Note" in data:
+            print(f"⏳ Cashflow API rate limited (attempt {attempt+1}/{max_retries}). Waiting 15s...")
+            time.sleep(15)
+            continue
+        
+        break
+    
+    if not data or 'annualReports' not in data:
+        print(f"❌ No cashflow data available for {symbol}. Response keys: {list(data.keys()) if data else 'None'}")
         return jsonify({'error': 'No data available'})
 
     annual_reports = data['annualReports']
