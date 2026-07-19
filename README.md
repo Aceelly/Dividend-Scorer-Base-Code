@@ -82,6 +82,9 @@ Refinded and Added Accurate formulas
 New Dashboard look
 Removed Undeeded CSS
 
+🗓️ 7/19/2026
+Added a few seconds delay in-between the individual API calls so those with a free API will still be able to use it. (Will need to be removed in full production)
+
 ## TO-DO
 - **Add Current Ratio Formula**: Calculate current ratio using financial data.
 - **Add ROI Formula**: Implement Return on Investment calculation.
@@ -89,4 +92,5 @@ Removed Undeeded CSS
 - **Add Feedback Feature**: Add mechanism for user feedback and suggestions.
 - **Consolidate the CashFlow API call for the Cashflow chart**
 - **Research and Connect Firebase Authorization**
+- **Add cache for API pulls so duplicate tickers do not request all new API pulls***
 
