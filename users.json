@@ -10,5 +10,9 @@
     "LeonaR": {
         "id": 3,
         "password_hash": "scrypt:32768:8:1$hhQ7WFIoLyWhstHc$3e466d9c6b4dfb8cfcc12b6f4c713f6c936c45c40835facb5f057f7b27050f4e125a103c677cdf3327eab8053d0a8d61d8ed22cc07d774dc16160087ed258685"
+    },
+    "Ace": {
+        "id": 4,
+        "password_hash": "scrypt:32768:8:1$t7enr38MKTwGkrPV$a3e36f8e9593546ad650aba18b7165db7321113940700c104720d2850bb050cce98b3ce600237124a4ebb7cd0a59fb20554de09f707c4bdb731664c1102a260b"
     }
 }

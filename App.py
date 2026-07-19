@@ -7,6 +7,7 @@ import json
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 import datetime
+import time
 
 # Load environment variables
 load_dotenv()
@@ -325,18 +326,36 @@ def get_dividend_score():
     url_cf = f'https://www.alphavantage.co/query?function=CASH_FLOW&symbol={ticker}&apikey={api_key}'
     url_bs = f'https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol={ticker}&apikey={api_key}'
 
-    try:
-        response_ts = requests.get(url_ts)
-        response_overview = requests.get(url_overview)
-        response_income = requests.get(url_income)
-        response_cf = requests.get(url_cf)
-        response_bs = requests.get(url_bs)
+    # Helper function to make API calls with rate limit handling
+    def fetch_with_retry(url, label, max_retries=3):
+        for attempt in range(max_retries):
+            response = requests.get(url)
+            data = response.json()
+            
+            # Check if we got rate limited
+            if "Information" in data or "Note" in data:
+                msg = data.get("Information") or data.get("Note", "")
+                print(f"⏳ {label} rate limited (attempt {attempt+1}/{max_retries}). Waiting 15s...")
+                time.sleep(15)
+                continue
+            
+            print(f"✅ {label} received")
+            return data
+        
+        # If all retries exhausted, return the last response anyway
+        print(f"❌ {label} failed after {max_retries} attempts")
+        return data
 
-        data_ts = response_ts.json()
-        data_overview = response_overview.json()
-        data_income = response_income.json()
-        data_cf = response_cf.json()
-        data_bs = response_bs.json()
+    try:
+        data_ts = fetch_with_retry(url_ts, "TIME_SERIES_MONTHLY_ADJUSTED")
+        time.sleep(13)
+        data_overview = fetch_with_retry(url_overview, "OVERVIEW")
+        time.sleep(13)
+        data_income = fetch_with_retry(url_income, "INCOME_STATEMENT")
+        time.sleep(13)
+        data_cf = fetch_with_retry(url_cf, "CASH_FLOW")
+        time.sleep(13)
+        data_bs = fetch_with_retry(url_bs, "BALANCE_SHEET")
 
         time_series_data = data_ts.get("Monthly Adjusted Time Series")
         
